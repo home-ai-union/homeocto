@@ -1,0 +1,103 @@
+# HomeOcto Windows Build Script
+# Builds all 2 executables: homeocto, homeocto-launcher
+# Embeds workspace and config files into the exe
+
+$ErrorActionPreference = "Stop"
+
+# Colors for output
+function Write-Color($message, $color) {
+    Write-Host $message -ForegroundColor $color
+}
+
+# Get script directory and project root
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+$ProjectRoot = Split-Path -Parent $ScriptDir
+$BuildDir = Join-Path $ProjectRoot "build"
+
+# Build configuration
+$BuildTags = "goolm,stdjson"
+$LdFlags = "-s -w"
+
+# Workspace paths
+$WorkspaceSource = Join-Path $ProjectRoot "workspace"
+$OnboardDir = Join-Path $ProjectRoot "cmd\homeocto\internal\onboard"
+$WorkspaceTarget = Join-Path $OnboardDir "workspace"
+
+# Ensure build directory exists
+if (!(Test-Path $BuildDir)) {
+    New-Item -ItemType Directory -Path $BuildDir | Out-Null
+}
+
+Write-Color "`n========================================" "Cyan"
+Write-Color "  HomeOcto Windows Build Script" "Cyan"
+Write-Color "========================================`n" "Cyan"
+
+# Change to project root
+Push-Location $ProjectRoot
+
+try {
+    # Step 0: Copy workspace to embed directory (equivalent to go:generate)
+    Write-Color "[0/2] Preparing workspace for embedding..." "Magenta"
+    
+    # Remove existing workspace in onboard directory
+    if (Test-Path $WorkspaceTarget) {
+        Write-Color "      Removing existing workspace copy..." "Gray"
+        Remove-Item -Recurse -Force $WorkspaceTarget
+    }
+    
+    # Copy workspace directory to onboard package for embedding
+    if (Test-Path $WorkspaceSource) {
+        Write-Color "      Copying workspace to $WorkspaceTarget..." "Gray"
+        Copy-Item -Recurse -Force $WorkspaceSource $WorkspaceTarget
+        Write-Color "      Workspace prepared for embedding!" "Green"
+    } else {
+        throw "Workspace source directory not found: $WorkspaceSource"
+    }
+
+    # Build 1: homeocto.exe
+    Write-Color "[1/2] Building homeocto.exe..." "Yellow"
+    $env:CGO_ENABLED = "0"
+    go build -v -tags $BuildTags -ldflags "$LdFlags" -o "$BuildDir\homeocto.exe" .\cmd\homeocto
+    if ($LASTEXITCODE -ne 0) { throw "Failed to build homeocto.exe" }
+    Write-Color "      homeocto.exe built successfully!" "Green"
+
+    # Build 2: homeocto-launcher.exe (web backend)
+    Write-Color "[2/2] Building homeocto-launcher.exe..." "Yellow"
+    
+    # Always rebuild frontend to ensure latest changes are included
+    Write-Color "      Building frontend..." "Magenta"
+    Push-Location (Join-Path $ProjectRoot "web\frontend")
+    try {
+        npm install --legacy-peer-deps
+        if ($LASTEXITCODE -ne 0) { throw "npm install failed" }
+        npm run build:backend
+        if ($LASTEXITCODE -ne 0) { throw "npm run build:backend failed" }
+    } finally {
+        Pop-Location
+    }
+    Write-Color "      Frontend built successfully!" "Green"
+    
+    go build -v -tags $BuildTags -ldflags "$LdFlags" -o "$BuildDir\homeocto-launcher.exe" .\web\backend
+    if ($LASTEXITCODE -ne 0) { throw "Failed to build homeocto-launcher.exe" }
+    Write-Color "      homeocto-launcher.exe built successfully!" "Green"
+
+    # Summary
+    Write-Color "`n========================================" "Cyan"
+    Write-Color "  Build Complete!" "Green"
+    Write-Color "========================================" "Cyan"
+    Write-Color "`nOutput directory: $BuildDir" "White"
+    Write-Color "`nBuilt executables:" "White"
+    
+    Get-ChildItem "$BuildDir\*.exe" | ForEach-Object {
+        $size = [math]::Round($_.Length / 1MB, 2)
+        Write-Color "  - $($_.Name) ($size MB)" "Gray"
+    }
+    
+    Write-Color "`n" "White"
+
+} catch {
+    Write-Color "`nBuild failed: $_" "Red"
+    exit 1
+} finally {
+    Pop-Location
+}

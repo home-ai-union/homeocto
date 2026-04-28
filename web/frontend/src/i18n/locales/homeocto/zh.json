@@ -1,0 +1,209 @@
+{
+  "navigation": {
+    "smart_home": "智能家居",
+    "device_control": "设备控制",
+    "xiaomi": "小米",
+    "tuya": "涂鸦",
+    "apple": "苹果",
+    "go2rtc": "视频控制"
+  },
+  "tuya": {
+    "description": "登录涂鸦账号,连接您的涂鸦智能家居设备。",
+    "login": {
+      "title": "登录涂鸦账号",
+      "description": "输入您的涂鸦账号信息,连接您的智能家居设备。",
+      "descriptionRtsp": "登录涂鸦账号以获取摄像头的 RTSP 视频流。",
+      "overseasNote": "仅支持海外版 Tuya Smart app 注册的账号,国内涂鸦 app 的账号无法使用。",
+      "submit": "登录",
+      "loggingIn": "登录中...",
+      "error": "登录失败,请检查您的账号信息。"
+    },
+    "token": {
+      "title": "使用令牌连接",
+      "description": "输入您的涂鸦访问令牌以连接您的智能家居设备。",
+      "saving": "保存中...",
+      "save": "保存令牌",
+      "saveError": "保存令牌失败。"
+    },
+    "status": {
+      "loggedIn": "已连接涂鸦",
+      "loggedInDesc": "您的涂鸦账号已连接,可以控制您的智能家居设备。",
+      "tokenDesc": "您的涂鸦账号已通过令牌连接,可以控制您的智能家居设备。"
+    },
+    "authType": {
+      "token": "令牌"
+    },
+    "field": {
+      "region": "区域",
+      "selectRegion": "选择区域",
+      "email": "邮箱",
+      "emailPlaceholder": "输入您的涂鸦账号邮箱",
+      "username": "邮箱 / 手机号",
+      "usernamePlaceholder": "输入您的涂鸦账号邮箱或手机号",
+      "password": "密码",
+      "passwordPlaceholder": "输入您的密码",
+      "token": "访问令牌",
+      "tokenPlaceholder": "输入您的涂鸦访问令牌",
+      "authType": "认证方式"
+    },
+    "action": {
+      "logout": "退出登录",
+      "deleteCredentials": "删除凭据",
+      "deleteToken": "删除令牌"
+    },
+    "validation": {
+      "required": "请填写所有字段。",
+      "tokenRequired": "请输入访问令牌。"
+    }
+  },
+  "xiaomi": {
+    "description": "登录小米账号,连接您的小米智能家居设备。",
+    "login": {
+      "title": "登录小米账号",
+      "description": "输入您的小米账号信息,连接您的智能家居设备。",
+      "submit": "登录",
+      "loggingIn": "登录中..."
+    },
+    "captcha": {
+      "title": "验证码验证",
+      "description": "请输入图片中的验证码。",
+      "submit": "提交",
+      "submitting": "提交中..."
+    },
+    "verify": {
+      "title": "安全验证",
+      "descriptionPhone": "验证码已发送至您的手机 {{target}}。",
+      "descriptionEmail": "验证码已发送至您的邮箱 {{target}}。",
+      "submit": "验证",
+      "submitting": "验证中..."
+    },
+    "status": {
+      "loggedIn": "已连接小米账号",
+      "loggedInDesc": "您的小米账号已连接,可以控制您的智能家居设备。"
+    },
+    "field": {
+      "username": "邮箱 / 手机号",
+      "usernamePlaceholder": "输入您的小米账号邮箱或手机号",
+      "password": "密码",
+      "passwordPlaceholder": "输入您的密码",
+      "captcha": "验证码",
+      "captchaPlaceholder": "输入图片验证码",
+      "verifyCode": "短信/邮件验证码",
+      "verifyCodePlaceholder": "输入验证码",
+      "userId": "用户 ID"
+    },
+    "action": {
+      "logout": "退出登录",
+      "cancel": "取消"
+    },
+    "validation": {
+      "required": "请填写所有字段。",
+      "captchaRequired": "请输入验证码。",
+      "verifyRequired": "请输入短信/邮件验证码。"
+    }
+  },
+  "go2rtc": {
+    "title": "视频控制",
+    "description": "管理 go2rtc 视频流服务,可在此启动、停止或重启服务。",
+    "service": {
+      "title": "go2rtc 服务",
+      "desc": "用于摄像头和 RTSP 流的实时视频流服务。"
+    },
+    "status": {
+      "label": "状态",
+      "running": "运行中",
+      "starting": "启动中...",
+      "restarting": "重启中...",
+      "stopping": "停止中...",
+      "stopped": "已停止",
+      "error": "错误",
+      "unknown": "未知"
+    },
+    "action": {
+      "start": "启动",
+      "stop": "停止",
+      "restart": "重启"
+    }
+  },
+  "apple": {
+    "description": "发现并配对网络上的 Apple HomeKit 设备。所有支持 HomeKit 的设备将被自动检测。",
+    "unpaired": {
+      "title": "可用设备",
+      "empty": "未找到未配对的设备。请确保您的 HomeKit 设备处于配对模式。"
+    },
+    "paired": {
+      "title": "已配对设备",
+      "empty": "暂无已配对设备。从可用设备中选择一个设备进行配对。"
+    },
+    "pair": {
+      "title": "配对 HomeKit 设备",
+      "description": "输入 {{name}} 的 HomeKit 设置代码。这通常是设备上的 8 位数字代码。",
+      "pairing": "配对中..."
+    },
+    "field": {
+      "pin": "HomeKit 设置代码",
+      "pinPlaceholder": "输入 8 位 PIN 码"
+    },
+    "action": {
+      "pair": "配对",
+      "unpair": "取消配对",
+      "cancel": "取消"
+    },
+    "validation": {
+      "pinRequired": "请输入 HomeKit 设置代码。"
+    }
+  },
+  "smart_home": {
+    "ws": {
+      "connected": "已连接",
+      "connecting": "连接中",
+      "error": "连接错误",
+      "disconnected": "未连接"
+    },
+    "log": {
+      "title": "通信记录",
+      "empty": "暂无通信记录",
+      "clear": "清空记录",
+      "close": "关闭",
+      "send": "发送",
+      "receive": "接收",
+      "error": "错误"
+    }
+  },
+  "device_control": "设备控制",
+  "device_control_page": {
+    "noDevices": "你还没有设备,请先去添加设备吧",
+    "generateOps": "生成操作"
+  },
+  "home_section": {
+    "title": "家庭信息",
+    "syncHomes": "同步家庭",
+    "syncingHomes": "同步家庭中...",
+    "noHomes": "未找到家庭,请同步获取您的家庭信息。",
+    "selectHome": "选择此家庭",
+    "currentHome": "当前家庭",
+    "confirmHomeChange": "切换家庭将重新同步设备,是否继续?"
+  },
+  "device_section": {
+    "title": "设备列表",
+    "syncDevices": "同步设备",
+    "syncingDevices": "同步设备中...",
+    "generateOps": "AI生成操作",
+    "generatingOps": "生成中...",
+    "clearOps": "清除操作",
+    "clearingOps": "清除中...",
+    "noDevices": "未找到设备,请同步获取您的设备信息。",
+    "selectHomeFirst": "请先选择一个家庭以查看设备。",
+    "online": "在线",
+    "offline": "离线",
+    "room": "房间"
+  },
+  "video_section": {
+    "title": "本地视频设置",
+    "comingSoon": "敬请期待..."
+  },
+  "buttons": {
+    "confirm": "确认",
+    "cancel": "取消"
+  }
+}

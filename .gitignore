@@ -1,0 +1,84 @@
+# Binaries
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+homeocto-gateway
+homeocto-launcher
+
+# Test binary
+*.test
+
+# Output of the go coverage tool
+*.out
+
+# Dependency directories
+vendor/
+
+# Go workspace file
+go.work
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Cache and AI assistant
+.cache/
+.qoder/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Build output
+build/
+web/backend/dist/
+
+# Node modules
+web/frontend/node_modules/
+
+# Environment
+.env
+.env.local
+
+# Go build cache and debug binaries
+go.build
+__debug_bin*
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Temporary files
+*.tmp
+*.temp
+
+# Frontend build output
+web/frontend/dist/
+
+# Package archives
+*.zip
+*.tar.gz
+*.rar
+
+# macOS specific
+._*
+.Spotlight-V100
+.Trashes
+
+# Windows specific
+desktop.ini
+$RECYCLE.BIN/
+
+# Inno Setup output (installer builds)
+setup_*.exe
+Output*/

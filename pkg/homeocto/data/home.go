@@ -1,0 +1,102 @@
+// Package data provides data access layer for HomeClaw.
+package data
+
+// HomeStore defines the interface for home data operations
+type HomeStore interface {
+	GetAll() ([]Home, error)
+	GetCurrent(from string) (*Home, error)
+	Save(homes ...Home) error
+	Delete(fromID, from string) error
+	SetCurrent(fromID, from string) error
+}
+
+// homeStore implements HomeStore using JSONStore
+type homeStore struct {
+	store *JSONStore
+	data  HomesData
+}
+
+// NewHomeStore creates a new HomeStore
+func NewHomeStore(store *JSONStore) (HomeStore, error) {
+	s := &homeStore{store: store}
+	if err := s.load(); err != nil {
+		return nil, err
+	}
+	return s, nil
+}
+
+// load reads data from file
+func (s *homeStore) load() error {
+	s.data = HomesData{Version: "1", Homes: []Home{}}
+	return s.store.Read("homes", &s.data)
+}
+
+// save writes data to file
+func (s *homeStore) save() error {
+	return s.store.Write("homes", s.data)
+}
+
+// GetAll returns all homes
+func (s *homeStore) GetAll() ([]Home, error) {
+	return s.data.Homes, nil
+}
+
+// GetCurrent returns the current home for a given from source
+func (s *homeStore) GetCurrent(from string) (*Home, error) {
+	for i := range s.data.Homes {
+		if s.data.Homes[i].From == from && s.data.Homes[i].Current {
+			return &s.data.Homes[i], nil
+		}
+	}
+	return nil, ErrRecordNotFound
+}
+
+// Save saves homes (insert or update)
+func (s *homeStore) Save(homes ...Home) error {
+	for _, home := range homes {
+		found := false
+		for i := range s.data.Homes {
+			if s.data.Homes[i].FromID == home.FromID && s.data.Homes[i].From == home.From {
+				s.data.Homes[i] = home
+				found = true
+				break
+			}
+		}
+		if !found {
+			s.data.Homes = append(s.data.Homes, home)
+		}
+	}
+	return s.save()
+}
+
+// Delete deletes a home by FromID and From
+func (s *homeStore) Delete(fromID, from string) error {
+	for i := range s.data.Homes {
+		if s.data.Homes[i].FromID == fromID && s.data.Homes[i].From == from {
+			s.data.Homes = append(s.data.Homes[:i], s.data.Homes[i+1:]...)
+			return s.save()
+		}
+	}
+	return ErrRecordNotFound
+}
+
+// SetCurrent sets the current home for a given from source.
+// It first sets all homes with the same from to current=false,
+// then sets the specified home (by fromID and from) to current=true.
+func (s *homeStore) SetCurrent(fromID, from string) error {
+	found := false
+	for i := range s.data.Homes {
+		if s.data.Homes[i].From == from {
+			if s.data.Homes[i].FromID == fromID {
+				s.data.Homes[i].Current = true
+				found = true
+			} else {
+				s.data.Homes[i].Current = false
+			}
+		}
+	}
+	if !found {
+		return ErrRecordNotFound
+	}
+	return s.save()
+}

@@ -1,0 +1,598 @@
+import {
+  IconLoader2,
+} from "@tabler/icons-react"
+import { useStore } from "jotai"
+import { useEffect, useState } from "react"
+import { useTranslation } from "react-i18next"
+
+import { Button } from "@/components/ui/button"
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Switch } from "@/components/ui/switch"
+import { Slider } from "@/components/ui/slider"
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import {
+  deviceOpsAtom,
+} from "@/homeocto/store/device-ops"
+import { callTool } from "@/homeocto/api/device-command-executor"
+import { SmartHomeLayout } from "@/homeocto/components/smart-home-layout"
+
+// ── Types ──────────────────────────────────────────────────────────────────
+
+/**
+ * DeviceOp matches the backend structure from pkg/homeclaw/data/types.go
+ */
+export interface DeviceOp {
+  urn: string
+  from: string
+  ops: string
+  param_type: "bool" | "int" | "enum" | "string" | "in"
+  param_value: any  // null, true/false, "min-max", {"1":"desc"}, or array
+  method: string
+  method_param: string  // Go template JSON string
+}
+
+interface DeviceWithOps {
+  from_id: string
+  from: string
+  name: string
+  type: string
+  urn: string
+  space_name: string
+  ops: DeviceOp[]
+}
+
+interface RoomGroup {
+  room_name: string
+  devices: DeviceWithOps[]
+}
+
+interface ListOpsResponse {
+  success: boolean
+  rooms: RoomGroup[]
+  count: number
+  message?: string
+}
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+/**
+ * Fetch all devices with operations via WebSocket listOps method.
+ */
+async function fetchDevicesWithOpsViaWS(): Promise<RoomGroup[]> {
+  try {
+    const result = await callTool(
+      {
+        toolName: "hc_cli",
+        method: "listOps",
+        brand: "",
+        params: {},
+      },
+      {
+        timeout: 30000,
+      }
+    )
+
+    if (!result.success || !result.message) {
+      throw new Error(result.error || "Failed to fetch devices")
+    }
+
+    // Parse the JSON response from the tool
+    const response: ListOpsResponse = JSON.parse(result.message)
+    return response.rooms || []
+  } catch (error) {
+    console.error("Failed to fetch devices with ops:", error)
+    throw error
+  }
+}
+
+/**
+ * Parse the param_value string "min-max" into [min, max] numbers.
+ */
+function parseRange(paramValue: any): [number, number] {
+  if (typeof paramValue === "string") {
+    const parts = paramValue.split("-").map(Number)
+    if (parts.length === 2 && !isNaN(parts[0]) && !isNaN(parts[1])) {
+      return [parts[0], parts[1]]
+    }
+  }
+  return [0, 100]
+}
+
+/**
+ * Parse enum param_value JSON object into { value, label } pairs.
+ */
+function parseEnumOptions(paramValue: any): Array<{ value: string; label: string }> {
+  if (typeof paramValue === "object" && paramValue !== null) {
+    return Object.entries(paramValue).map(([value, label]) => ({
+      value,
+      label: String(label),
+    }))
+  }
+  return []
+}
+
+// ── Control Components ─────────────────────────────────────────────────────
+
+interface ControlProps {
+  op: DeviceOp
+  fromId: string
+  from: string
+  deviceName: string
+  compact?: boolean
+}
+
+/**
+ * Bool control: renders a toggle switch.
+ * Combines turn_on/turn_off ops into a single switch.
+ */
+function BoolControl({ op, fromId, from, deviceName }: ControlProps) {
+  const [isOn, setIsOn] = useState(op.param_value === true)
+  const [loading, setLoading] = useState(false)
+
+  const handleToggle = async (checked: boolean) => {
+    setLoading(true)
+    setIsOn(checked)
+    try {
+      await callTool(
+        {
+          toolName: "hc_cli",
+          method: "exe",
+          brand: from,
+          params: {
+            from_id: fromId,
+            from,
+            ops: op.ops,
+            value: checked,
+          },
+        },
+        {
+          timeout: 60000,
+          successMessage: `${deviceName} ${checked ? "已开启" : "已关闭"}`,
+        }
+      )
+    } catch (error) {
+      console.error("Failed to execute bool op:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <Label className="text-sm">{op.ops}</Label>
+      <Switch
+        checked={isOn}
+        onCheckedChange={handleToggle}
+        disabled={loading}
+      />
+    </div>
+  )
+}
+
+/**
+ * Int control: renders a slider with min-max range.
+ */
+function IntControl({ op, fromId, from, deviceName }: ControlProps) {
+  const [min, max] = parseRange(op.param_value)
+  const [value, setValue] = useState<number>(min)
+  const [loading, setLoading] = useState(false)
+
+  const handleCommit = async (vals: number[]) => {
+    const newVal = vals[0]
+    setValue(newVal)
+    setLoading(true)
+    try {
+      await callTool(
+        {
+          toolName: "hc_cli",
+          method: "exe",
+          brand: from,
+          params: {
+            from_id: fromId,
+            from,
+            ops: op.ops,
+            value: newVal,
+          },
+        },
+        {
+          timeout: 60000,
+          successMessage: `${deviceName} ${op.ops} → ${newVal}`,
+        }
+      )
+    } catch (error) {
+      console.error("Failed to execute int op:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label className="text-sm">{op.ops}</Label>
+        <span className="text-xs text-muted-foreground">{value}</span>
+      </div>
+      <Slider
+        min={min}
+        max={max}
+        step={1}
+        value={[value]}
+        onValueChange={handleCommit}
+        disabled={loading}
+      />
+      <div className="flex justify-between text-xs text-muted-foreground">
+        <span>{min}</span>
+        <span>{max}</span>
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Enum control: renders a dropdown select.
+ */
+function EnumControl({ op, fromId, from, deviceName }: ControlProps) {
+  const options = parseEnumOptions(op.param_value)
+  const [value, setValue] = useState<string>(options[0]?.value ?? "")
+  const [loading, setLoading] = useState(false)
+
+  const handleChange = async (newVal: string) => {
+    setValue(newVal)
+    setLoading(true)
+    try {
+      await callTool(
+        {
+          toolName: "hc_cli",
+          method: "exe",
+          brand: from,
+          params: {
+            from_id: fromId,
+            from,
+            ops: op.ops,
+            value: newVal,
+          },
+        },
+        {
+          timeout: 60000,
+          successMessage: `${deviceName} ${op.ops} → ${options.find(o => o.value === newVal)?.label ?? newVal}`,
+        }
+      )
+    } catch (error) {
+      console.error("Failed to execute enum op:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="space-y-2">
+      <Label className="text-sm">{op.ops}</Label>
+      <Select
+        value={value}
+        onValueChange={handleChange}
+        disabled={loading}
+      >
+        <SelectTrigger>
+          <SelectValue placeholder="Select..." />
+        </SelectTrigger>
+        <SelectContent>
+          {options.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value}>
+              {opt.label}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+    </div>
+  )
+}
+
+/**
+ * String control: renders a text input with a submit button.
+ */
+function StringControl({ op, fromId, from, deviceName }: ControlProps) {
+  const [value, setValue] = useState("")
+  const [loading, setLoading] = useState(false)
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!value.trim()) return
+    setLoading(true)
+    try {
+      await callTool(
+        {
+          toolName: "hc_cli",
+          method: "exe",
+          brand: from,
+          params: {
+            from_id: fromId,
+            from,
+            ops: op.ops,
+            value: value.trim(),
+          },
+        },
+        {
+          timeout: 60000,
+          successMessage: `${deviceName} ${op.ops} → ${value.trim()}`,
+        }
+      )
+      setValue("")
+    } catch (error) {
+      console.error("Failed to execute string op:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-2">
+      <Label className="text-sm">{op.ops}</Label>
+      <div className="flex gap-2">
+        <Input
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
+          placeholder="Enter value..."
+          disabled={loading}
+        />
+        <Button
+          type="submit"
+          size="sm"
+          disabled={loading || !value.trim()}
+        >
+          {loading ? <IconLoader2 className="size-4 animate-spin" /> : "Send"}
+        </Button>
+      </div>
+    </form>
+  )
+}
+
+/**
+ * In control: renders a simple button for action operations.
+ * The param_value contains the input array, backend handles it automatically.
+ */
+function InControl({ op, fromId, from, deviceName, compact }: ControlProps) {
+  const [loading, setLoading] = useState(false)
+
+  const handleClick = async () => {
+    setLoading(true)
+    try {
+      // For 'in' type, we don't need to pass value from frontend
+      // The backend will use the param_value from the DeviceOp
+      await callTool(
+        {
+          toolName: "hc_cli",
+          method: "exe",
+          brand: from,
+          params: {
+            from_id: fromId,
+            from,
+            ops: op.ops,
+            // No value needed - backend uses param_value from DeviceOp
+          },
+        },
+        {
+          timeout: 60000,
+          successMessage: `${deviceName} ${op.ops}`,
+        }
+      )
+    } catch (error) {
+      console.error("Failed to execute in op:", error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (compact) {
+    return (
+      <Button
+        onClick={handleClick}
+        disabled={loading}
+        variant="outline"
+        size="sm"
+        className="flex items-center gap-1"
+      >
+        {loading ? (
+          <IconLoader2 className="size-3 animate-spin" />
+        ) : (
+          <span className="text-xs">{op.ops}</span>
+        )}
+      </Button>
+    )
+  }
+
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <Label className="text-sm">{op.ops}</Label>
+      <Button
+        onClick={handleClick}
+        disabled={loading}
+        variant="outline"
+        size="sm"
+        className="flex items-center gap-1"
+      >
+        {loading ? (
+          <IconLoader2 className="size-3 animate-spin" />
+        ) : (
+          <span className="text-xs">{op.ops}</span>
+        )}
+      </Button>
+    </div>
+  )
+}
+
+// ── Main page ──────────────────────────────────────────────────────────────
+
+export function DeviceControlPage() {
+  const store = useStore()
+  const { t } = useTranslation("homeclaw")
+
+  const [state, setState] = useState(store.get(deviceOpsAtom))
+  const [rooms, setRooms] = useState<RoomGroup[]>([])
+
+  // ── Subscribe to store ───────────────────────────────────────────────────
+
+  useEffect(() => {
+    const unsub = store.sub(deviceOpsAtom, () => setState(store.get(deviceOpsAtom)))
+    return unsub
+  }, [store])
+
+  // ── Load devices with ops on mount ────────────────────────────────────────
+
+  useEffect(() => {
+    const loadDevices = async () => {
+      store.set(deviceOpsAtom, (prev) => ({ ...prev, isLoading: true, error: null }))
+      try {
+        const fetchedRooms = await fetchDevicesWithOpsViaWS()
+        setRooms(fetchedRooms)
+        store.set(deviceOpsAtom, (prev) => ({ ...prev, isLoading: false, error: null }))
+      } catch (error) {
+        const errorMsg = error instanceof Error ? error.message : "Unknown error"
+        store.set(deviceOpsAtom, (prev) => ({ ...prev, isLoading: false, error: errorMsg }))
+      }
+    }
+    void loadDevices()
+  }, [store])
+
+
+
+  // ── Main render ──────────────────────────────────────────────────────────
+
+  return (
+    <SmartHomeLayout
+      title={t("device_control")}
+      isLoading={state.isLoading}
+    >
+      <div className="pt-2 space-y-6">
+        {rooms.length === 0 && !state.isLoading ? (
+          <div className="text-muted-foreground py-12 text-center">
+            <p className="text-base">{t("device_control_page.noDevices")}</p>
+          </div>
+        ) : (
+          rooms.map((room) => (
+            <div key={room.room_name}>
+              <h2 className="text-lg font-semibold mb-3">{room.room_name}</h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {room.devices.map((device) => {
+                  const deviceKey = `${device.from_id}-${device.from}`
+
+                  return (
+                    <Card key={deviceKey}>
+                      <CardHeader className="pb-2">
+                        <div className="flex items-center justify-between">
+                          <CardTitle className="text-base">{device.name}</CardTitle>
+                          <Badge variant="outline">{device.type}</Badge>
+                        </div>
+                        <CardDescription>
+                          {device.from} · {device.from_id}
+                        </CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        {(() => {
+                          // Group ops by param_type
+                          const inOps = device.ops.filter(op => op.param_type === "in")
+                          const boolOps = device.ops.filter(op => op.param_type === "bool")
+                          const enumOps = device.ops.filter(op => op.param_type === "enum")
+                          const intOps = device.ops.filter(op => op.param_type === "int")
+                          const stringOps = device.ops.filter(op => op.param_type === "string")
+
+                          return (
+                            <>
+                              {/* In controls: compact button row */}
+                              {inOps.length > 0 && (
+                                <div className="space-y-2">
+                                  <div className="flex flex-wrap gap-2">
+                                    {inOps.map((op, idx) => (
+                                      <InControl
+                                        key={`in-${op.urn}-${op.ops}-${idx}`}
+                                        op={op}
+                                        fromId={device.from_id}
+                                        from={device.from}
+                                        deviceName={device.name}
+                                        compact
+                                      />
+                                    ))}
+                                  </div>
+                                </div>
+                              )}
+
+                              {/* Bool controls: 2 units each */}
+                              {boolOps.length > 0 && (
+                                <div className="grid grid-cols-2 gap-3">
+                                  {boolOps.map((op, idx) => (
+                                    <BoolControl
+                                      key={`bool-${op.urn}-${op.ops}-${idx}`}
+                                      op={op}
+                                      fromId={device.from_id}
+                                      from={device.from}
+                                      deviceName={device.name}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Enum controls: 2 units each */}
+                              {enumOps.length > 0 && (
+                                <div className="grid grid-cols-2 gap-3">
+                                  {enumOps.map((op, idx) => (
+                                    <EnumControl
+                                      key={`enum-${op.urn}-${op.ops}-${idx}`}
+                                      op={op}
+                                      fromId={device.from_id}
+                                      from={device.from}
+                                      deviceName={device.name}
+                                    />
+                                  ))}
+                                </div>
+                              )}
+
+                              {/* Int controls: full row each */}
+                              {intOps.map((op, idx) => (
+                                <IntControl
+                                  key={`int-${op.urn}-${op.ops}-${idx}`}
+                                  op={op}
+                                  fromId={device.from_id}
+                                  from={device.from}
+                                  deviceName={device.name}
+                                />
+                              ))}
+
+                              {/* String controls: full row each */}
+                              {stringOps.map((op, idx) => (
+                                <StringControl
+                                  key={`string-${op.urn}-${op.ops}-${idx}`}
+                                  op={op}
+                                  fromId={device.from_id}
+                                  from={device.from}
+                                  deviceName={device.name}
+                                />
+                              ))}
+                            </>
+                          )
+                        })()}
+                      </CardContent>
+                    </Card>
+                  )
+                })}
+              </div>
+            </div>
+          ))
+        )}
+      </div>
+    </SmartHomeLayout>
+  )
+}
