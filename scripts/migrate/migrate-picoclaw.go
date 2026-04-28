@@ -8,6 +8,8 @@ import (
 	"path/filepath"
 	"strings"
 	"unicode/utf8"
+
+	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
 // 替换规则 - 按长度降序排列，确保长字符串优先匹配
@@ -27,7 +29,7 @@ var gitMergeFile = []string{
 	"frontend/src/routeTree.gen.ts", // 前端文件使用 Git 合并
 	"frontend/src/components/app-header.tsx",
 	"frontend/src/components/app-layout.tsx",
-	"frontend/src/components/page-header.tsx",
+	"frontend/src/components/app-sidebar.tsx",
 	"backend/utils/runtime.go", // 后端运行时文件
 }
 
@@ -312,97 +314,83 @@ func copyTextFileWithReplace(src, dst string) error {
 	return nil
 }
 
-// 使用简单的行级别合并
+// 使用 go-diff 进行智能合并
+// 策略：以 homeocto (dst) 的内容为准，将其修改应用到 picoclaw (src) 上
 func mergeTextFiles(src, dst string) error {
-	fmt.Printf("  🔄 Merging: %s\n", filepath.Base(dst))
+	fmt.Printf("  🔄 Merging with go-diff: %s\n", filepath.Base(dst))
 
-	// 读取目标文件（当前版本）
-	dstLines, err := readLines(dst)
+	// 读取目标文件（homeocto 当前版本 - 这是权威版本）
+	dstContent, err := os.ReadFile(dst)
 	if err != nil {
 		return fmt.Errorf("read destination file: %w", err)
 	}
 
-	// 读取源文件并应用替换
+	// 读取源文件（picoclaw 版本）并应用替换
 	srcContent, err := readFileWithReplace(src)
 	if err != nil {
 		return fmt.Errorf("read source file with replace: %w", err)
 	}
-	srcLines := strings.Split(srcContent, "\n")
 
-	// 简单的合并策略：以源文件为基础，保留目标文件的独特修改
-	merged := smartMerge(dstLines, srcLines)
+	// 使用 go-diff 进行合并
+	// 方向：从 src (picoclaw) 到 dst (homeocto) 的差异
+	dmp := diffmatchpatch.New()
 
-	// 写入合并后的内容
-	if err := os.WriteFile(dst, []byte(strings.Join(merged, "\n")), 0644); err != nil {
-		return fmt.Errorf("write merged file: %w", err)
+	// 创建 patch：从 src 到 dst 的差异（homeocto 的修改）
+	patches := dmp.PatchMake(string(srcContent), string(dstContent))
+
+	if len(patches) == 0 {
+		// 没有差异，直接使用 homeocto 的内容
+		fmt.Printf("  ✓ No changes needed, using homeocto version: %s\n", filepath.Base(dst))
+		return nil
 	}
 
-	fmt.Printf("  ✓ Merged successfully: %s\n", filepath.Base(dst))
-	return nil
-}
+	// 将 homeocto 的修改应用到 picoclaw (已替换) 的内容上
+	merged, results := dmp.PatchApply(patches, string(srcContent))
 
-// 读取文件行为数组
-func readLines(filename string) ([]string, error) {
-	file, err := os.Open(filename)
-	if err != nil {
-		return nil, err
-	}
-	defer file.Close()
-
-	var lines []string
-	scanner := bufio.NewScanner(file)
-	for scanner.Scan() {
-		lines = append(lines, scanner.Text())
-	}
-	return lines, scanner.Err()
-}
-
-// 智能合并：基于行的简单三路合并
-// 策略：以 homeocto (dst) 为基础，保留其独特修改，同时应用 picoclaw (src) 的新行和替换
-func smartMerge(dstLines, srcLines []string) []string {
-	// 如果旧文件为空，直接返回新文件
-	if len(dstLines) == 0 {
-		return srcLines
-	}
-
-	// 如果新文件为空，保留旧文件
-	if len(srcLines) == 0 {
-		return dstLines
-	}
-
-	// 构建 dst 行的映射，用于快速查找
-	dstLineSet := make(map[string]int)
-	for i, line := range dstLines {
-		dstLineSet[line] = i
-	}
-
-	// 构建 src 行的映射
-	srcLineSet := make(map[string]int)
-	for i, line := range srcLines {
-		srcLineSet[line] = i
-	}
-
-	// 结果：以 dst 为基础
-	result := make([]string, 0, len(dstLines))
-	addedLines := make(map[int]bool) // 记录已添加的 src 行索引
-
-	// 1. 遍历 dst 的所有行（保留 homeocto 的修改）
-	for _, dstLine := range dstLines {
-		result = append(result, dstLine)
-	}
-
-	// 2. 添加 src 中独有的行（picoclaw 的新内容）
-	for i, srcLine := range srcLines {
-		if _, exists := dstLineSet[srcLine]; !exists {
-			// 这行在 dst 中不存在，是 src 的新内容
-			if !addedLines[i] {
-				result = append(result, srcLine)
-				addedLines[i] = true
-			}
+	// 检查 patch 应用结果
+	successCount := 0
+	failCount := 0
+	for _, result := range results {
+		if result {
+			successCount++
+		} else {
+			failCount++
 		}
 	}
 
-	return result
+	if failCount > 0 {
+		fmt.Printf("  ⚠ %d patches failed, %d succeeded - generating conflict markers\n", failCount, successCount)
+		// 生成带冲突标记的文件，供人工合并
+		// 注意：这里 dst (homeocto) 是权威版本，放在上面
+		merged = generateConflictMarkers(string(dstContent), string(srcContent), patches)
+	}
+
+	// 写入合并后的内容（以 homeocto 为准）
+	if err := os.WriteFile(dst, []byte(merged), 0644); err != nil {
+		return fmt.Errorf("write merged file: %w", err)
+	}
+
+	fmt.Printf("  ✓ Merged successfully (homeocto priority): %s\n", filepath.Base(dst))
+	return nil
+}
+
+// 生成带冲突标记的文件，类似 git merge conflict
+func generateConflictMarkers(dst, src string, patches []diffmatchpatch.Patch) string {
+	var result strings.Builder
+
+	result.WriteString("<<<<<<< HOME OCTO (current version)\n")
+	result.WriteString(dst)
+	if !strings.HasSuffix(dst, "\n") {
+		result.WriteString("\n")
+	}
+	result.WriteString("=======\n")
+	result.WriteString(src)
+	if !strings.HasSuffix(src, "\n") {
+		result.WriteString("\n")
+	}
+	result.WriteString(">>>>>>> PICOCLAW (incoming version with replacements)\n")
+
+	return result.String()
 }
 
 // 读取文件并应用替换规则

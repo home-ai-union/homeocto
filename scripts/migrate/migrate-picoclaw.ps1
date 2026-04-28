@@ -44,13 +44,23 @@ Write-Host ""
 # Get script directory
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
+# Save current directory
+$OriginalDir = Get-Location
+
+# Change to script directory to use the correct go.mod
+Set-Location $ScriptDir
+
 # Run Go migration script
 $goScript = Join-Path $ScriptDir "migrate-picoclaw.go"
 
+Write-Host "Working directory: $ScriptDir" -ForegroundColor Gray
 Write-Host "Executing: go run $goScript $PicoclawRoot $HomeoctoRoot" -ForegroundColor Gray
 Write-Host ""
 
 go run $goScript $PicoclawRoot $HomeoctoRoot
+
+# Restore original directory
+Set-Location $OriginalDir
 
 if ($LASTEXITCODE -eq 0) {
     Write-Host ""
