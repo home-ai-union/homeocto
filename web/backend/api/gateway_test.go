@@ -45,7 +45,7 @@ func startGatewayLikeProcess(t *testing.T) *exec.Cmd {
 	if runtime.GOOS == "windows" {
 		t.Skip("gateway-like process commandline check is not deterministic on Windows tests")
 	}
-	cmd = exec.Command("sh", "-c", "sleep 30 # homeocto gateway")
+	cmd = exec.Command("sh", "-c", "sleep 30 # picoclaw gateway")
 
 	if err := cmd.Start(); err != nil {
 		t.Fatalf("Start() error = %v", err)
@@ -57,7 +57,7 @@ func startGatewayLikeProcess(t *testing.T) *exec.Cmd {
 func writeTestPidFile(t *testing.T, data ppid.PidFileData) string {
 	t.Helper()
 
-	path := filepath.Join(globalConfigDir(), ".homeocto.pid")
+	path := filepath.Join(globalConfigDir(), ".picoclaw.pid")
 	raw, err := json.MarshalIndent(data, "", "  ")
 	if err != nil {
 		t.Fatalf("marshal pid file: %v", err)
@@ -101,7 +101,7 @@ func resetGatewayTestState(t *testing.T) {
 	originalRestartGracePeriod := gatewayRestartGracePeriod
 	originalRestartForceKillWindow := gatewayRestartForceKillWindow
 	originalRestartPollInterval := gatewayRestartPollInterval
-	t.Setenv("HOMEOCTO_HOME", t.TempDir())
+	t.Setenv("PICOCLAW_HOME", t.TempDir())
 	t.Cleanup(func() {
 		gatewayHealthGet = originalHealthGet
 		gatewayProcessMatcher = originalProcessMatcher
@@ -309,8 +309,8 @@ func TestLooksLikeGatewayCommandLine(t *testing.T) {
 		want    bool
 	}{
 		{
-			name:    "default homeocto gateway",
-			cmdline: "/usr/local/bin/homeocto gateway -E",
+			name:    "default picoclaw gateway",
+			cmdline: "/usr/local/bin/picoclaw gateway -E",
 			want:    true,
 		},
 		{
@@ -1435,11 +1435,11 @@ func TestGatewayRestartReturnsErrorStatusWhenReplacementFailsToStart(t *testing.
 		t.Fatalf("SaveConfig() error = %v", err)
 	}
 
-	invalidBinaryPath := filepath.Join(t.TempDir(), "fake-homeocto")
+	invalidBinaryPath := filepath.Join(t.TempDir(), "fake-picoclaw")
 	if err := os.WriteFile(invalidBinaryPath, []byte("#!/bin/sh\n"), 0o644); err != nil {
 		t.Fatalf("WriteFile() error = %v", err)
 	}
-	t.Setenv("HOMEOCTO_BINARY", invalidBinaryPath)
+	t.Setenv("PICOCLAW_BINARY", invalidBinaryPath)
 
 	h := NewHandler(configPath)
 	mux := http.NewServeMux()
@@ -1612,29 +1612,29 @@ func TestGatewayClearLogsResetsBufferedHistory(t *testing.T) {
 	}
 }
 
-func TestFindHomeoctoBinary_EnvOverride(t *testing.T) {
+func TestFindPicoclawBinary_EnvOverride(t *testing.T) {
 	// Create a temporary file to act as the mock binary
 	tmpDir := t.TempDir()
-	mockBinary := filepath.Join(tmpDir, "homeocto-mock")
+	mockBinary := filepath.Join(tmpDir, "picoclaw-mock")
 	if err := os.WriteFile(mockBinary, []byte("mock"), 0o755); err != nil {
 		t.Fatalf("WriteFile() error = %v", err)
 	}
 
-	t.Setenv("HOMEOCTO_BINARY", mockBinary)
+	t.Setenv("PICOCLAW_BINARY", mockBinary)
 
-	got := utils.FindHomeoctoBinary()
+	got := utils.FindPicoclawBinary()
 	if got != mockBinary {
-		t.Errorf("FindHomeoctoBinary() = %q, want %q", got, mockBinary)
+		t.Errorf("FindPicoclawBinary() = %q, want %q", got, mockBinary)
 	}
 }
 
-func TestFindHomeoctoBinary_EnvOverride_InvalidPath(t *testing.T) {
-	// When HOMEOCTO_BINARY points to a non-existent path, fall through to next strategy
-	t.Setenv("HOMEOCTO_BINARY", "/nonexistent/homeocto-binary")
+func TestFindPicoclawBinary_EnvOverride_InvalidPath(t *testing.T) {
+	// When PICOCLAW_BINARY points to a non-existent path, fall through to next strategy
+	t.Setenv("PICOCLAW_BINARY", "/nonexistent/picoclaw-binary")
 
-	got := utils.FindHomeoctoBinary()
-	// Should not return the invalid path; falls back to "homeocto" or another found path
-	if got == "/nonexistent/homeocto-binary" {
-		t.Errorf("FindHomeoctoBinary() returned invalid env path %q, expected fallback", got)
+	got := utils.FindPicoclawBinary()
+	// Should not return the invalid path; falls back to "picoclaw" or another found path
+	if got == "/nonexistent/picoclaw-binary" {
+		t.Errorf("FindPicoclawBinary() returned invalid env path %q, expected fallback", got)
 	}
 }

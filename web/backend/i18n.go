@@ -58,7 +58,7 @@ var translations = map[Language]map[TranslationKey]string{
 		MenuQuit:           "Quit",
 		MenuQuitTooltip:    "Exit PicoClaw",
 		Exiting:            "Exiting PicoClaw...",
-		DocUrl:             "https://docs.homeocto.io/docs/",
+		DocUrl:             "https://docs.picoclaw.io/docs/",
 	},
 	LanguageChinese: {
 		AppTooltip:         "%s - Web Console",
@@ -75,7 +75,7 @@ var translations = map[Language]map[TranslationKey]string{
 		MenuQuit:           "退出",
 		MenuQuitTooltip:    "退出 PicoClaw",
 		Exiting:            "正在退出 PicoClaw...",
-		DocUrl:             "https://docs.homeocto.io/zh-Hans/docs/",
+		DocUrl:             "https://docs.picoclaw.io/zh-Hans/docs/",
 	},
 }
 

@@ -492,7 +492,7 @@ func (h *Handler) handleOAuthLogout(w http.ResponseWriter, r *http.Request) {
 
 func renderOAuthCallbackPage(w http.ResponseWriter, flowID, status, title, errMsg string) {
 	payload := map[string]string{
-		"type":   "homeocto-oauth-result",
+		"type":   "picoclaw-oauth-result",
 		"flowId": flowID,
 		"status": status,
 	}

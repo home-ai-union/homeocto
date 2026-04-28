@@ -13,15 +13,15 @@ import (
 	"github.com/sipeed/picoclaw/pkg/config"
 )
 
-func TestNewHomeoctoCommand(t *testing.T) {
-	cmd := NewHomeoctoCommand()
+func TestNewPicoclawCommand(t *testing.T) {
+	cmd := NewPicoclawCommand()
 
 	require.NotNil(t, cmd)
 
 	short := fmt.Sprintf("%s PicoClaw — personal AI assistant", internal.Logo)
 	longHas := strings.Contains(cmd.Long, config.FormatVersion())
 
-	assert.Equal(t, "homeocto", cmd.Use)
+	assert.Equal(t, "picoclaw", cmd.Use)
 	assert.Equal(t, short, cmd.Short)
 	assert.True(t, longHas)
 

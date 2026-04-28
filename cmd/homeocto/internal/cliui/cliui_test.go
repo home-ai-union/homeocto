@@ -30,7 +30,7 @@ func TestShowErrHint(t *testing.T) {
 		// required flag errors — should show hint
 		{"required flag(s) \"model\" not set", true},
 		// usage: in message — should show hint
-		{"bad input\nusage: homeocto ...", true},
+		{"bad input\nusage: picoclaw ...", true},
 		// Should NOT false-positive on broad words
 		{"connection flagged by remote", false},
 		{"feature flag not set", false},
@@ -59,16 +59,16 @@ func TestStyleUsageTokensContainsTokens(t *testing.T) {
 		contains []string // substrings that must appear in plain output
 	}{
 		{
-			"homeocto agent <message>",
-			[]string{"homeocto agent", "<message>"},
+			"picoclaw agent <message>",
+			[]string{"picoclaw agent", "<message>"},
 		},
 		{
-			"homeocto [command] [flags]",
-			[]string{"homeocto", "[command]", "[flags]"},
+			"picoclaw [command] [flags]",
+			[]string{"picoclaw", "[command]", "[flags]"},
 		},
 		{
-			"homeocto",
-			[]string{"homeocto"},
+			"picoclaw",
+			[]string{"picoclaw"},
 		},
 		{
 			"cmd <arg1> [--flag]",

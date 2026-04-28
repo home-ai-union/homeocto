@@ -35,7 +35,7 @@ var gateway = struct {
 	runtimeStatus       string
 	startupDeadline     time.Time
 	logs                *LogBuffer
-	pidData             *ppid.PidFileData // pid file data read from homeocto.pid.json
+	pidData             *ppid.PidFileData // pid file data read from picoclaw.pid.json
 	picoToken           string            // cached raw pico token for upstream gateway proxy injection
 }{
 	runtimeStatus: "stopped",
@@ -152,7 +152,7 @@ func getGatewayHealthByURL(url string, timeout time.Duration) (*health.StatusRes
 	return &healthResponse, resp.StatusCode, nil
 }
 
-// isLikelyGatewayProcess returns whether PID appears to be a homeocto gateway
+// isLikelyGatewayProcess returns whether PID appears to be a picoclaw gateway
 // process plus whether inspection was conclusive on this platform/environment.
 func isLikelyGatewayProcess(pid int) (bool, bool) {
 	if pid <= 0 {
@@ -184,7 +184,7 @@ func isLikelyGatewayProcess(pid int) (bool, bool) {
 		// A CSV row means the process exists, but may have a custom executable
 		// name we cannot classify here.
 		if strings.HasPrefix(line, "\"") {
-			if strings.Contains(line, "\"homeocto.exe\"") {
+			if strings.Contains(line, "\"picoclaw.exe\"") {
 				return true, true
 			}
 			return false, false
@@ -207,7 +207,7 @@ func isLikelyGatewayProcess(pid int) (bool, bool) {
 }
 
 // looksLikeGatewayCommandLine checks whether a process command line likely
-// represents "homeocto gateway ..." regardless of executable filename.
+// represents "picoclaw gateway ..." regardless of executable filename.
 func looksLikeGatewayCommandLine(cmdline string) bool {
 	fields := strings.Fields(strings.ToLower(strings.TrimSpace(cmdline)))
 	if len(fields) == 0 {
@@ -261,7 +261,7 @@ func (h *Handler) validateGatewayPidData(
 
 	if gatewayProcess, inspected := gatewayProcessMatcher(pidData.PID); inspected {
 		if !gatewayProcess {
-			return false, true, "pid process command is not homeocto gateway"
+			return false, true, "pid process command is not picoclaw gateway"
 		}
 		return true, true, ""
 	}
@@ -701,8 +701,8 @@ func (h *Handler) startGatewayLocked(initialStatus string, existingPid int) (int
 	}
 
 	// Start new process
-	// Locate the homeocto executable
-	execPath := utils.FindHomeoctoBinary()
+	// Locate the picoclaw executable
+	execPath := utils.FindPicoclawBinary()
 	logger.InfoC("gateway", fmt.Sprintf("Starting gateway process (%s)", execPath))
 
 	cmd = gatewayExecCommand(execPath, h.gatewayCommandArgs()...)
@@ -753,7 +753,7 @@ func (h *Handler) startGatewayLocked(initialStatus string, existingPid int) (int
 	gateway.bootConfigSignature = computeConfigSignature(cfg)
 	setGatewayRuntimeStatusLocked(initialStatus)
 	pid = cmd.Process.Pid
-	logger.InfoC("gateway", fmt.Sprintf("Started homeocto gateway (PID: %d) from %s", pid, execPath))
+	logger.InfoC("gateway", fmt.Sprintf("Started picoclaw gateway (PID: %d) from %s", pid, execPath))
 
 	// Capture stdout/stderr in background
 	go scanPipe(stdoutPipe, gateway.logs)
@@ -837,7 +837,7 @@ func (h *Handler) startGatewayLocked(initialStatus string, existingPid int) (int
 	return pid, nil
 }
 
-// handleGatewayStart starts the homeocto gateway subprocess.
+// handleGatewayStart starts the picoclaw gateway subprocess.
 //
 //	POST /api/gateway/start
 func (h *Handler) handleGatewayStart(w http.ResponseWriter, r *http.Request) {

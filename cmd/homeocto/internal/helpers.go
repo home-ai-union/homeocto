@@ -11,9 +11,9 @@ import (
 
 const Logo = pkg.Logo
 
-// GetHomeoctoHome returns the homeocto home directory.
-// Priority: $HOMEOCTO_HOME > ~/.homeocto
-func GetHomeoctoHome() string {
+// GetPicoclawHome returns the picoclaw home directory.
+// Priority: $PICOCLAW_HOME > ~/.picoclaw
+func GetPicoclawHome() string {
 	return config.GetHome()
 }
 
@@ -21,7 +21,7 @@ func GetConfigPath() string {
 	if configPath := os.Getenv(config.EnvConfig); configPath != "" {
 		return configPath
 	}
-	return filepath.Join(GetHomeoctoHome(), "config.json")
+	return filepath.Join(GetPicoclawHome(), "config.json")
 }
 
 func LoadConfig() (*config.Config, error) {

@@ -75,15 +75,15 @@ func TestHandleListSkills(t *testing.T) {
 	}
 
 	builtinRoot := filepath.Join(t.TempDir(), "builtin-skills")
-	oldBuiltin := os.Getenv("HOMEOCTO_BUILTIN_SKILLS")
-	if err := os.Setenv("HOMEOCTO_BUILTIN_SKILLS", builtinRoot); err != nil {
-		t.Fatalf("Setenv(HOMEOCTO_BUILTIN_SKILLS) error = %v", err)
+	oldBuiltin := os.Getenv("PICOCLAW_BUILTIN_SKILLS")
+	if err := os.Setenv("PICOCLAW_BUILTIN_SKILLS", builtinRoot); err != nil {
+		t.Fatalf("Setenv(PICOCLAW_BUILTIN_SKILLS) error = %v", err)
 	}
 	defer func() {
 		if oldBuiltin == "" {
-			_ = os.Unsetenv("HOMEOCTO_BUILTIN_SKILLS")
+			_ = os.Unsetenv("PICOCLAW_BUILTIN_SKILLS")
 		} else {
-			_ = os.Setenv("HOMEOCTO_BUILTIN_SKILLS", oldBuiltin)
+			_ = os.Setenv("PICOCLAW_BUILTIN_SKILLS", oldBuiltin)
 		}
 	}()
 

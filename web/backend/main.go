@@ -5,9 +5,9 @@
 //
 // Usage:
 //
-//	go build -o homeocto-web ./web/backend/
-//	./homeocto-web [config.json]
-//	./homeocto-web -public config.json
+//	go build -o picoclaw-web ./web/backend/
+//	./picoclaw-web [config.json]
+//	./picoclaw-web -public config.json
 
 package main
 
@@ -356,7 +356,7 @@ func main() {
 		fmt.Fprintf(os.Stderr, "%s Launcher - Web console and gateway manager\n\n", appName)
 		fmt.Fprintf(os.Stderr, "Usage: %s [options] [config.json]\n\n", os.Args[0])
 		fmt.Fprintf(os.Stderr, "Arguments:\n")
-		fmt.Fprintf(os.Stderr, "  config.json    Path to the configuration file (default: ~/.homeocto/config.json)\n\n")
+		fmt.Fprintf(os.Stderr, "  config.json    Path to the configuration file (default: ~/.picoclaw/config.json)\n\n")
 		fmt.Fprintf(os.Stderr, "Options:\n")
 		flag.PrintDefaults()
 		fmt.Fprintf(os.Stderr, "\nExamples:\n")
@@ -378,7 +378,7 @@ func main() {
 	flag.Parse()
 
 	// Initialize logger
-	picoHome := utils.GetHomeoctoHome()
+	picoHome := utils.GetPicoclawHome()
 
 	f := filepath.Join(picoHome, logPath, panicFile)
 	panicFunc, err := logger.InitPanic(f)
@@ -486,7 +486,7 @@ func main() {
 	}
 
 	if !explicitHost && hostOverrideActive {
-		logger.InfoC("web", "Using launcher host from environment HOMEOCTO_LAUNCHER_HOST")
+		logger.InfoC("web", "Using launcher host from environment PICOCLAW_LAUNCHER_HOST")
 	}
 
 	if hostOverrideActive && explicitPublic {

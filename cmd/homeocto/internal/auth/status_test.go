@@ -44,7 +44,7 @@ func setAuthStatusTestHome(t *testing.T) string {
 	t.Helper()
 
 	tmpDir := t.TempDir()
-	t.Setenv(config.EnvHome, filepath.Join(tmpDir, ".homeocto"))
+	t.Setenv(config.EnvHome, filepath.Join(tmpDir, ".picoclaw"))
 	return tmpDir
 }
 
@@ -76,7 +76,7 @@ func TestAuthStatusCmdShowsCanonicalGoogleAntigravityAfterLegacyRefresh(t *testi
 	data, err := json.Marshal(legacyStore)
 	require.NoError(t, err)
 
-	authPath := filepath.Join(tmpDir, ".homeocto", "auth.json")
+	authPath := filepath.Join(tmpDir, ".picoclaw", "auth.json")
 	require.NoError(t, os.MkdirAll(filepath.Dir(authPath), 0o755))
 	require.NoError(t, os.WriteFile(authPath, data, 0o600))
 

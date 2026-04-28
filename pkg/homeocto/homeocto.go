@@ -16,7 +16,6 @@ import (
 	"github.com/home-ai-union/homeocto/pkg/homeocto/ioc"
 	third "github.com/home-ai-union/homeocto/pkg/homeocto/third/ioc"
 	"github.com/sipeed/picoclaw/pkg/bus"
-	"github.com/sipeed/picoclaw/pkg/channels"
 	"github.com/sipeed/picoclaw/pkg/config"
 	"github.com/sipeed/picoclaw/pkg/media"
 
@@ -40,38 +39,38 @@ type HomeOcto struct {
 	wsHandler *ToolWSHandler
 }
 
-// InjectToolWSHandler creates a ToolWSHandler and injects it into PicoChannel
-// so that /pico/ws-tool requests can execute tools directly without the agent loop.
-func (hc *HomeOcto) InjectToolWSHandler(
-	cm *channels.Manager,
-	toolRegistry *tools.ToolRegistry,
-	picoCfg *config.Config,
-) {
-	if cm == nil {
-		logger.Warnf("[HomeOcto.InjectToolWSHandler] channelManager is nil, skipping")
-		return
-	}
+// // InjectToolWSHandler creates a ToolWSHandler and injects it into PicoChannel
+// // so that /pico/ws-tool requests can execute tools directly without the agent loop.
+// func (hc *HomeOcto) InjectToolWSHandler(
+// 	cm *channels.Manager,
+// 	toolRegistry *tools.ToolRegistry,
+// 	picoCfg *config.Config,
+// ) {
+// 	if cm == nil {
+// 		logger.Warnf("[HomeOcto.InjectToolWSHandler] channelManager is nil, skipping")
+// 		return
+// 	}
 
-	handler := NewToolWSHandler(hc, toolRegistry, picoCfg)
-	if handler == nil {
-		logger.Warnf("[HomeOcto.InjectToolWSHandler] NewToolWSHandler returned nil")
-		return
-	}
+// 	handler := NewToolWSHandler(hc, toolRegistry, picoCfg)
+// 	if handler == nil {
+// 		logger.Warnf("[HomeOcto.InjectToolWSHandler] NewToolWSHandler returned nil")
+// 		return
+// 	}
 
-	// Get PicoChannel and inject the handler directly
-	ch := cm.ChannelByName("pico")
-	if ch == nil {
-		logger.Warnf("[HomeOcto.InjectToolWSHandler] PicoChannel not found")
-		return
-	}
+// 	// Get PicoChannel and inject the handler directly
+// 	ch := cm.ChannelByName("pico")
+// 	if ch == nil {
+// 		logger.Warnf("[HomeOcto.InjectToolWSHandler] PicoChannel not found")
+// 		return
+// 	}
 
-	if setter, ok := ch.(channels.ToolHandlerSetter); ok {
-		setter.SetToolHandler(handler)
-		logger.InfoCF("homeocto", "ToolWSHandler injected into PicoChannel", nil)
-	} else {
-		logger.Warnf("[HomeOcto.InjectToolWSHandler] PicoChannel does not implement ToolHandlerSetter")
-	}
-}
+// 	if setter, ok := ch.(channels.ToolHandlerSetter); ok {
+// 		setter.SetToolHandler(handler)
+// 		logger.InfoCF("homeocto", "ToolWSHandler injected into PicoChannel", nil)
+// 	} else {
+// 		logger.Warnf("[HomeOcto.InjectToolWSHandler] PicoChannel does not implement ToolHandlerSetter")
+// 	}
+// }
 
 // NewHomeOcto creates a HomeOcto instance from the given workspace directory,
 // PicoClaw config, and message bus.

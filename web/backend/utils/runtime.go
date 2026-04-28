@@ -13,26 +13,26 @@ import (
 	"github.com/sipeed/picoclaw/pkg/logger"
 )
 
-// GetHomeoctoHome returns the homeocto home directory.
-// Priority: $HOMEOCTO_HOME > ~/.homeocto
-func GetHomeoctoHome() string {
+// GetPicoclawHome returns the picoclaw home directory.
+// Priority: $PICOCLAW_HOME > ~/.picoclaw
+func GetPicoclawHome() string {
 	return config.GetHome()
 }
 
-// GetDefaultConfigPath returns the default path to the homeocto config file.
+// GetDefaultConfigPath returns the default path to the picoclaw config file.
 func GetDefaultConfigPath() string {
 	if configPath := os.Getenv(config.EnvConfig); configPath != "" {
 		return configPath
 	}
-	return filepath.Join(GetHomeoctoHome(), "config.json")
+	return filepath.Join(GetPicoclawHome(), "config.json")
 }
 
-// FindHomeoctoBinary locates the homeocto executable.
+// FindPicoclawBinary locates the picoclaw executable.
 // Search order:
-//  1. HOMEOCTO_BINARY environment variable (explicit override)
+//  1. PICOCLAW_BINARY environment variable (explicit override)
 //  2. Same directory as the current executable
-//  3. Falls back to "homeocto" and relies on $PATH
-func FindHomeoctoBinary() string {
+//  3. Falls back to "picoclaw" and relies on $PATH
+func FindPicoclawBinary() string {
 	binaryName := "homeocto"
 	if runtime.GOOS == "windows" {
 		binaryName = "homeocto.exe"

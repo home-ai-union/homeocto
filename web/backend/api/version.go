@@ -46,14 +46,14 @@ var (
 	// staying independent from cross-file init ordering.
 	versionCmdTimeout           = 15 * time.Second
 	maxVersionResolveAttempts   = 3
-	findHomeoctoBinaryForInfo   = resolveGatewayBinaryForVersionInfo
-	runHomeoctoVersionOutput    = executeHomeoctoVersion
+	findPicoclawBinaryForInfo   = resolveGatewayBinaryForVersionInfo
+	runPicoclawVersionOutput    = executePicoclawVersion
 	currentGatewayVersionState  = gatewayVersionState
 	launcherBuildInfoForVersion = fallbackSystemVersionInfoFromConfig
 	versionInfoCache            = newSystemVersionCache()
 	ansiEscapePattern           = regexp.MustCompile(`\x1b\[[0-9;]*m`)
 	versionLinePattern          = regexp.MustCompile(
-		`^(?:[^A-Za-z0-9]*\s*)?homeocto(?:\.exe)?\s+([^\s(]+)` +
+		`^(?:[^A-Za-z0-9]*\s*)?picoclaw(?:\.exe)?\s+([^\s(]+)` +
 			`(?:\s+\(git:\s*([^)]+)\))?\s*$`,
 	)
 )
@@ -73,7 +73,7 @@ func (h *Handler) handleGetVersion(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// resolveSystemVersionInfo prefers the actual homeocto binary version output,
+// resolveSystemVersionInfo prefers the actual picoclaw binary version output,
 // and falls back to launcher build metadata when command execution fails.
 func (h *Handler) resolveSystemVersionInfo(ctx context.Context) systemVersionResponse {
 	for range maxVersionResolveAttempts {
@@ -106,7 +106,7 @@ func (h *Handler) resolveSystemVersionInfoUncached(ctx context.Context) systemVe
 
 	fallback := fallbackSystemVersionInfo()
 
-	execPath := strings.TrimSpace(findHomeoctoBinaryForInfo())
+	execPath := strings.TrimSpace(findPicoclawBinaryForInfo())
 	if execPath == "" {
 		return fallback
 	}
@@ -114,12 +114,12 @@ func (h *Handler) resolveSystemVersionInfoUncached(ctx context.Context) systemVe
 	cmdCtx, cancel := context.WithTimeout(ctx, versionCmdTimeout)
 	defer cancel()
 
-	output, err := runHomeoctoVersionOutput(cmdCtx, execPath)
+	output, err := runPicoclawVersionOutput(cmdCtx, execPath)
 	if err != nil {
 		return fallback
 	}
 
-	parsed, ok := parseHomeoctoVersionOutput(output)
+	parsed, ok := parsePicoclawVersionOutput(output)
 	if !ok {
 		return fallback
 	}
@@ -163,7 +163,7 @@ func resolveGatewayBinaryForVersionInfo() string {
 		}
 	}
 
-	return utils.FindHomeoctoBinary()
+	return utils.FindPicoclawBinary()
 }
 
 func gatewayVersionState() (int, bool) {
@@ -256,9 +256,9 @@ func (c *systemVersionCache) resetForTest() {
 	}
 }
 
-// executeHomeoctoVersion runs the version subcommand against the
-// discovered homeocto executable.
-func executeHomeoctoVersion(ctx context.Context, execPath string) (string, error) {
+// executePicoclawVersion runs the version subcommand against the
+// discovered picoclaw executable.
+func executePicoclawVersion(ctx context.Context, execPath string) (string, error) {
 	out, err := exec.CommandContext(ctx, execPath, "version").CombinedOutput()
 	if err == nil {
 		return string(out), nil
@@ -267,9 +267,9 @@ func executeHomeoctoVersion(ctx context.Context, execPath string) (string, error
 	return string(out), fmt.Errorf("failed to execute version command: %w", err)
 }
 
-// parseHomeoctoVersionOutput extracts version/build/go fields from CLI output.
+// parsePicoclawVersionOutput extracts version/build/go fields from CLI output.
 // It accepts banner/ANSI-decorated output and only requires the version line.
-func parseHomeoctoVersionOutput(raw string) (systemVersionResponse, bool) {
+func parsePicoclawVersionOutput(raw string) (systemVersionResponse, bool) {
 	var result systemVersionResponse
 
 	scanner := bufio.NewScanner(strings.NewReader(raw))

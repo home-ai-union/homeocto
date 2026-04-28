@@ -219,13 +219,13 @@ func setupOAuthTestEnv(t *testing.T) (string, func()) {
 
 	tmp := t.TempDir()
 	oldHome := os.Getenv("HOME")
-	oldPicoHome := os.Getenv("HOMEOCTO_HOME")
+	oldPicoHome := os.Getenv("PICOCLAW_HOME")
 
 	if err := os.Setenv("HOME", tmp); err != nil {
 		t.Fatalf("set HOME: %v", err)
 	}
-	if err := os.Setenv("HOMEOCTO_HOME", filepath.Join(tmp, ".homeocto")); err != nil {
-		t.Fatalf("set HOMEOCTO_HOME: %v", err)
+	if err := os.Setenv("PICOCLAW_HOME", filepath.Join(tmp, ".picoclaw")); err != nil {
+		t.Fatalf("set PICOCLAW_HOME: %v", err)
 	}
 
 	cfg := config.DefaultConfig()
@@ -244,9 +244,9 @@ func setupOAuthTestEnv(t *testing.T) (string, func()) {
 	cleanup := func() {
 		_ = os.Setenv("HOME", oldHome)
 		if oldPicoHome == "" {
-			_ = os.Unsetenv("HOMEOCTO_HOME")
+			_ = os.Unsetenv("PICOCLAW_HOME")
 		} else {
-			_ = os.Setenv("HOMEOCTO_HOME", oldPicoHome)
+			_ = os.Setenv("PICOCLAW_HOME", oldPicoHome)
 		}
 	}
 	return configPath, cleanup

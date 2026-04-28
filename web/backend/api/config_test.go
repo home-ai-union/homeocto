@@ -54,7 +54,7 @@ func TestHandleUpdateConfig_PreservesExecAllowRemoteDefaultWhenOmitted(t *testin
 "version": 3,
 		"agents": {
 			"defaults": {
-				"workspace": "~/.homeocto/workspace"
+				"workspace": "~/.picoclaw/workspace"
 			}
 		},
 		"model_list": [
@@ -93,7 +93,7 @@ func TestHandleUpdateConfig_DoesNotInheritDefaultModelFields(t *testing.T) {
 	req := httptest.NewRequest(http.MethodPut, "/api/config", bytes.NewBufferString(`{
 		"agents": {
 			"defaults": {
-				"workspace": "~/.homeocto/workspace"
+				"workspace": "~/.picoclaw/workspace"
 			}
 		},
 		"model_list": [
@@ -584,13 +584,13 @@ func setupPicoEnabledEnv(t *testing.T) (string, func()) {
 
 	tmp := t.TempDir()
 	oldHome := os.Getenv("HOME")
-	oldPicoHome := os.Getenv("HOMEOCTO_HOME")
+	oldPicoHome := os.Getenv("PICOCLAW_HOME")
 
 	if err := os.Setenv("HOME", tmp); err != nil {
 		t.Fatalf("set HOME: %v", err)
 	}
-	if err := os.Setenv("HOMEOCTO_HOME", filepath.Join(tmp, ".homeocto")); err != nil {
-		t.Fatalf("set HOMEOCTO_HOME: %v", err)
+	if err := os.Setenv("PICOCLAW_HOME", filepath.Join(tmp, ".picoclaw")); err != nil {
+		t.Fatalf("set PICOCLAW_HOME: %v", err)
 	}
 
 	cfg := config.DefaultConfig()
@@ -617,9 +617,9 @@ func setupPicoEnabledEnv(t *testing.T) (string, func()) {
 	cleanup := func() {
 		_ = os.Setenv("HOME", oldHome)
 		if oldPicoHome == "" {
-			_ = os.Unsetenv("HOMEOCTO_HOME")
+			_ = os.Unsetenv("PICOCLAW_HOME")
 		} else {
-			_ = os.Setenv("HOMEOCTO_HOME", oldPicoHome)
+			_ = os.Setenv("PICOCLAW_HOME", oldPicoHome)
 		}
 	}
 	return configPath, cleanup
@@ -638,7 +638,7 @@ func TestHandleUpdateConfig_SucceedsWhenPicoTokenInSecurityOnly(t *testing.T) {
 		"version": 1,
 		"agents": {
 			"defaults": {
-				"workspace": "~/.homeocto/workspace",
+				"workspace": "~/.picoclaw/workspace",
 				"model_name": "custom-default"
 			}
 		},
@@ -696,7 +696,7 @@ func TestHandleUpdateConfig_AppliesGatewayLogLevel(t *testing.T) {
 		"version": 1,
 		"agents": {
 			"defaults": {
-				"workspace": "~/.homeocto/workspace",
+				"workspace": "~/.picoclaw/workspace",
 				"model_name": "custom-default"
 			}
 		},

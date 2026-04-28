@@ -398,7 +398,7 @@ func TestHandleWebSocketProxyReloadsGatewayTargetFromConfig(t *testing.T) {
 	t.Cleanup(func() { gatewayProcessMatcher = origMatcher })
 
 	home := t.TempDir()
-	t.Setenv("HOMEOCTO_HOME", home)
+	t.Setenv("PICOCLAW_HOME", home)
 
 	configPath := filepath.Join(t.TempDir(), "config.json")
 	h := NewHandler(configPath)
@@ -485,7 +485,7 @@ func TestHandleWebSocketProxyLoadsCachedPicoTokenWhenMissing(t *testing.T) {
 	t.Cleanup(func() { gatewayProcessMatcher = origMatcher })
 
 	home := t.TempDir()
-	t.Setenv("HOMEOCTO_HOME", home)
+	t.Setenv("PICOCLAW_HOME", home)
 
 	configPath := filepath.Join(t.TempDir(), "config.json")
 	h := NewHandler(configPath)
@@ -562,7 +562,7 @@ func TestHandleWebSocketProxyLoadsPidDataOnDemand(t *testing.T) {
 	t.Cleanup(func() { gatewayProcessMatcher = origMatcher })
 
 	home := t.TempDir()
-	t.Setenv("HOMEOCTO_HOME", home)
+	t.Setenv("PICOCLAW_HOME", home)
 
 	configPath := filepath.Join(t.TempDir(), "config.json")
 	h := NewHandler(configPath)
@@ -652,7 +652,7 @@ func TestHandleWebSocketProxyLoadsPidDataOnDemand(t *testing.T) {
 func TestHandleWebSocketProxyRejectsStalePidDataAfterProcessExit(t *testing.T) {
 	tmpDir := t.TempDir()
 	t.Setenv("HOME", tmpDir)
-	t.Setenv("HOMEOCTO_HOME", filepath.Join(tmpDir, ".homeocto"))
+	t.Setenv("PICOCLAW_HOME", filepath.Join(tmpDir, ".picoclaw"))
 
 	configPath := filepath.Join(tmpDir, "config.json")
 	h := NewHandler(configPath)
@@ -716,7 +716,7 @@ func TestHandleWebSocketProxy_AllowsArbitraryOrigin(t *testing.T) {
 	t.Cleanup(func() { gatewayProcessMatcher = origMatcher })
 
 	home := t.TempDir()
-	t.Setenv("HOMEOCTO_HOME", home)
+	t.Setenv("PICOCLAW_HOME", home)
 
 	configPath := filepath.Join(t.TempDir(), "config.json")
 	h := NewHandler(configPath)

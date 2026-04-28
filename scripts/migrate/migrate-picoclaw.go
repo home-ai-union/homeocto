@@ -15,15 +15,20 @@ var replacements = []struct {
 	oldStr string
 	newStr string
 }{
+	{"github.com/sipeed/picoclaw/cmd/picoclaw", "github.com/home-ai-union/homeocto/cmd/homeocto"},
 	{"github.com/sipeed/picoclaw", "github.com/home-ai-union/homeocto"},
-	{"Picoclaw", "Homeocto"},
-	{"picoclaw", "homeocto"},
-	{"PICOCLAW", "HOMEOCTO"},
 }
 
 // 不替换的路径前缀（外部依赖包）
 var skipReplacementPrefixes = []string{
 	"github.com/sipeed/picoclaw/pkg", // 外部依赖包，保持原样
+}
+var gitMergeFile = []string{
+	"frontend/src/routeTree.gen.ts", // 前端文件使用 Git 合并
+	"frontend/src/components/app-header.tsx",
+	"frontend/src/components/app-layout.tsx",
+	"frontend/src/components/page-header.tsx",
+	"backend/utils/runtime.go", // 后端运行时文件
 }
 
 func main() {
@@ -95,6 +100,7 @@ func shouldSkipDirectory(relPath string) bool {
 		".cache",
 		".next",
 		".turbo",
+		".tanstack",
 	}
 
 	for _, skip := range skipDirs {
@@ -105,24 +111,27 @@ func shouldSkipDirectory(relPath string) bool {
 	return false
 }
 
-// 判断是否应该跳过某个文件
-func shouldSkipFile(relPath string) bool {
-	// 跳过的文件列表（完整路径匹配）
-	skipFilePaths := []string{
-		"src/components/app-header.tsx",
-		"src/components/app-layout.tsx",
-		"src/components/app-sidebar.tsx",
-		"src/routeTree.gen.ts",
-	}
+// 判断是否应该使用 Git 合并
+func shouldUseGitMerge(relPath string) bool {
+	// 统一转换为正斜杠，支持跨平台
+	normalizedPath := filepath.ToSlash(relPath)
 
-	// 检查完整路径匹配
-	for _, skip := range skipFilePaths {
-		if relPath == skip || strings.HasSuffix(relPath, "\\"+skip) || strings.HasSuffix(relPath, "/"+skip) {
+	for _, prefix := range gitMergeFile {
+		// 也将配置中的路径统一为正斜杠
+		normalizedPrefix := filepath.ToSlash(prefix)
+
+		// 精确匹配或前缀匹配
+		if normalizedPath == normalizedPrefix ||
+			strings.HasPrefix(normalizedPath, normalizedPrefix) ||
+			strings.Contains(normalizedPath, normalizedPrefix) {
 			return true
 		}
 	}
+	return false
+}
 
-	// 跳过的文件名（全局匹配）
+// 判断是否应该跳过某个文件
+func shouldSkipFile(relPath string) bool {
 	skipFiles := []string{
 		".DS_Store",
 		"Thumbs.db",
@@ -167,12 +176,13 @@ func isTextFile(path string) bool {
 		".xml":     true,
 		".svg":     true,
 		".graphql": true,
+		".desktop": true,
 	}
 
 	return textExtensions[ext]
 }
 
-// 拷贝目录并执行替换
+// 拷贝目录并执行替换（支持 Git 合并）
 func copyAndReplace(srcDir, dstDir string) error {
 	return filepath.Walk(srcDir, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -197,12 +207,29 @@ func copyAndReplace(srcDir, dstDir string) error {
 			return os.MkdirAll(targetPath, info.Mode())
 		}
 
-		// 跳过某些文件
+		// 跳过某些文件（不处理）
 		if shouldSkipFile(relPath) {
 			return nil
 		}
 
-		// 处理文件
+		// 检查目标文件是否已存在
+		if _, err := os.Stat(targetPath); err == nil {
+			// 目标文件已存在，检查是否需要 Git 合并
+			if shouldUseGitMerge(relPath) && isTextFile(relPath) {
+				// 使用 Git 合并
+				return mergeTextFiles(path, targetPath)
+			} else if isTextFile(relPath) {
+				// 普通文本文件，直接覆盖（应用替换）
+				fmt.Printf("  📝 Overwriting: %s\n", relPath)
+				return copyTextFileWithReplace(path, targetPath)
+			} else {
+				// 二进制文件直接覆盖
+				fmt.Printf("  ⚠ Overwriting binary file: %s\n", relPath)
+				return copyBinaryFile(path, targetPath)
+			}
+		}
+
+		// 目标文件不存在，直接复制并替换
 		if isTextFile(relPath) {
 			return copyTextFileWithReplace(path, targetPath)
 		} else {
@@ -283,6 +310,123 @@ func copyTextFileWithReplace(src, dst string) error {
 	}
 
 	return nil
+}
+
+// 使用简单的行级别合并
+func mergeTextFiles(src, dst string) error {
+	fmt.Printf("  🔄 Merging: %s\n", filepath.Base(dst))
+
+	// 读取目标文件（当前版本）
+	dstLines, err := readLines(dst)
+	if err != nil {
+		return fmt.Errorf("read destination file: %w", err)
+	}
+
+	// 读取源文件并应用替换
+	srcContent, err := readFileWithReplace(src)
+	if err != nil {
+		return fmt.Errorf("read source file with replace: %w", err)
+	}
+	srcLines := strings.Split(srcContent, "\n")
+
+	// 简单的合并策略：以源文件为基础，保留目标文件的独特修改
+	merged := smartMerge(dstLines, srcLines)
+
+	// 写入合并后的内容
+	if err := os.WriteFile(dst, []byte(strings.Join(merged, "\n")), 0644); err != nil {
+		return fmt.Errorf("write merged file: %w", err)
+	}
+
+	fmt.Printf("  ✓ Merged successfully: %s\n", filepath.Base(dst))
+	return nil
+}
+
+// 读取文件行为数组
+func readLines(filename string) ([]string, error) {
+	file, err := os.Open(filename)
+	if err != nil {
+		return nil, err
+	}
+	defer file.Close()
+
+	var lines []string
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		lines = append(lines, scanner.Text())
+	}
+	return lines, scanner.Err()
+}
+
+// 智能合并：基于行的简单三路合并
+// 策略：以 homeocto (dst) 为基础，保留其独特修改，同时应用 picoclaw (src) 的新行和替换
+func smartMerge(dstLines, srcLines []string) []string {
+	// 如果旧文件为空，直接返回新文件
+	if len(dstLines) == 0 {
+		return srcLines
+	}
+
+	// 如果新文件为空，保留旧文件
+	if len(srcLines) == 0 {
+		return dstLines
+	}
+
+	// 构建 dst 行的映射，用于快速查找
+	dstLineSet := make(map[string]int)
+	for i, line := range dstLines {
+		dstLineSet[line] = i
+	}
+
+	// 构建 src 行的映射
+	srcLineSet := make(map[string]int)
+	for i, line := range srcLines {
+		srcLineSet[line] = i
+	}
+
+	// 结果：以 dst 为基础
+	result := make([]string, 0, len(dstLines))
+	addedLines := make(map[int]bool) // 记录已添加的 src 行索引
+
+	// 1. 遍历 dst 的所有行（保留 homeocto 的修改）
+	for _, dstLine := range dstLines {
+		result = append(result, dstLine)
+	}
+
+	// 2. 添加 src 中独有的行（picoclaw 的新内容）
+	for i, srcLine := range srcLines {
+		if _, exists := dstLineSet[srcLine]; !exists {
+			// 这行在 dst 中不存在，是 src 的新内容
+			if !addedLines[i] {
+				result = append(result, srcLine)
+				addedLines[i] = true
+			}
+		}
+	}
+
+	return result
+}
+
+// 读取文件并应用替换规则
+func readFileWithReplace(src string) (string, error) {
+	content, err := os.ReadFile(src)
+	if err != nil {
+		return "", err
+	}
+
+	result := string(content)
+	for _, rule := range replacements {
+		// 检查是否需要跳过替换
+		shouldSkip := false
+		for _, prefix := range skipReplacementPrefixes {
+			if strings.Contains(result, prefix) {
+				shouldSkip = true
+				break
+			}
+		}
+		if !shouldSkip {
+			result = strings.ReplaceAll(result, rule.oldStr, rule.newStr)
+		}
+	}
+	return result, nil
 }
 
 // 拷贝二进制文件（不执行替换）

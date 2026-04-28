@@ -180,7 +180,7 @@ func skillsRemoveFromWorkspace(workspace string, toolsConfig config.SkillsToolsC
 }
 
 func skillsInstallBuiltinCmd(workspace string) {
-	builtinSkillsDir := "./homeocto/skills"
+	builtinSkillsDir := "./picoclaw/skills"
 	workspaceSkillsDir := filepath.Join(workspace, "skills")
 
 	fmt.Printf("Copying builtin skills to workspace...\n")
@@ -221,7 +221,7 @@ func skillsListBuiltinCmd() {
 		fmt.Printf("Error loading config: %v\n", err)
 		return
 	}
-	builtinSkillsDir := filepath.Join(filepath.Dir(cfg.WorkspacePath()), "homeocto", "skills")
+	builtinSkillsDir := filepath.Join(filepath.Dir(cfg.WorkspacePath()), "picoclaw", "skills")
 
 	fmt.Println("\nAvailable Builtin Skills:")
 	fmt.Println("-----------------------")

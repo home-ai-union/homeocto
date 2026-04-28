@@ -34,7 +34,7 @@ func NewGatewayCommand() *cobra.Command {
 	cmd := &cobra.Command{
 		Use:     "gateway",
 		Aliases: []string{"g"},
-		Short:   "Start homeocto gateway",
+		Short:   "Start picoclaw gateway",
 		Args:    cobra.NoArgs,
 		PreRunE: func(_ *cobra.Command, _ []string) error {
 			if noTruncate && !debug {
@@ -67,7 +67,7 @@ func NewGatewayCommand() *cobra.Command {
 				}()
 			}
 
-			return gateway.Run(debug, internal.GetHomeoctoHome(), internal.GetConfigPath(), allowEmpty)
+			return gateway.Run(debug, internal.GetPicoclawHome(), internal.GetConfigPath(), allowEmpty)
 		},
 	}
 

@@ -1,16 +1,16 @@
 # PicoClaw Web
 
 `web/` contains the standalone WebUI launcher for PicoClaw.
-It is not just a frontend: it is a small launcher service that bundles a React dashboard, exposes a backend API, manages launcher authentication, and starts or attaches to the `homeocto gateway` process.
+It is not just a frontend: it is a small launcher service that bundles a React dashboard, exposes a backend API, manages launcher authentication, and starts or attaches to the `picoclaw gateway` process.
 
-![PicoClaw Launcher](./homeocto-launcher.png)
+![PicoClaw Launcher](./picoclaw-launcher.png)
 
 ## What This Directory Provides
 
 - A browser-based chat UI backed by the Pico channel WebSocket proxy.
 - A dashboard for models, credentials, channels, agent tools, skills, logs, and runtime settings.
 - A launcher process that can auto-open the browser, show a system tray menu, and persist launcher-specific settings.
-- A controlled way to start, stop, restart, and inspect the `homeocto gateway` subprocess.
+- A controlled way to start, stop, restart, and inspect the `picoclaw gateway` subprocess.
 - A single-binary deployment target where the frontend is embedded into the Go backend.
 
 ## Architecture
@@ -29,7 +29,7 @@ At runtime the launcher and the main PicoClaw engine are separate processes:
 
 1. The launcher starts the web backend on port `18800` by default.
 2. The launcher serves the dashboard and handles dashboard authentication.
-3. When allowed, it starts or attaches to `homeocto gateway -E`.
+3. When allowed, it starts or attaches to `picoclaw gateway -E`.
 4. The frontend talks only to the launcher backend.
 5. The launcher proxies chat traffic to the gateway through `/pico/ws`.
 
@@ -67,14 +67,14 @@ The UI currently supports English and Simplified Chinese, plus light and dark th
 
 The launcher uses the same PicoClaw config file as the main binary.
 
-- Default app config path: `~/.homeocto/config.json`
-- Override with environment variable: `HOMEOCTO_CONFIG`
-- Override with a positional CLI argument: `homeocto-launcher /path/to/config.json`
+- Default app config path: `~/.picoclaw/config.json`
+- Override with environment variable: `PICOCLAW_CONFIG`
+- Override with a positional CLI argument: `picoclaw-launcher /path/to/config.json`
 
 Launcher-only settings are stored beside that app config:
 
 - File name: `launcher-config.json`
-- Default location: `~/.homeocto/launcher-config.json`
+- Default location: `~/.picoclaw/launcher-config.json`
 
 That file currently stores:
 
@@ -90,20 +90,20 @@ If they are omitted, stored launcher settings are used.
 If the target config file does not exist, the launcher tries to bootstrap it automatically by running:
 
 ```bash
-homeocto onboard
+picoclaw onboard
 ```
 
 The launcher looks for the main PicoClaw binary in this order:
 
-1. `HOMEOCTO_BINARY`
-2. A `homeocto` binary in the same directory as the launcher
-3. `homeocto` from `PATH`
+1. `PICOCLAW_BINARY`
+2. A `picoclaw` binary in the same directory as the launcher
+3. `picoclaw` from `PATH`
 
-If onboarding or gateway startup cannot find the main binary, set `HOMEOCTO_BINARY` explicitly.
+If onboarding or gateway startup cannot find the main binary, set `PICOCLAW_BINARY` explicitly.
 
 ### Gateway Management
 
-The launcher manages `homeocto gateway -E`.
+The launcher manages `picoclaw gateway -E`.
 
 On startup it tries to auto-start or attach to the gateway, but only when startup preconditions pass. In the current code, the main checks are:
 
@@ -131,7 +131,7 @@ The dashboard is protected by password login.
 - On supported platforms, the password is stored as a bcrypt hash in `launcher-auth.db`.
 - On platforms where the SQLite password store is unavailable, the launcher stores the bcrypt hash in `launcher-config.json`.
 - Legacy `launcher_token` values are migrated once into password login and are removed from saved launcher config.
-- `HOMEOCTO_LAUNCHER_TOKEN` is deprecated and ignored; after upgrading from env-token auth, open `/launcher-setup` to create a password.
+- `PICOCLAW_LAUNCHER_TOKEN` is deprecated and ignored; after upgrading from env-token auth, open `/launcher-setup` to create a password.
 - URL token login and `Authorization: Bearer` dashboard auth are not supported.
 
 ### Network Exposure
@@ -182,8 +182,8 @@ make dev
 
 This does three things:
 
-1. Builds `../build/homeocto` for launcher development.
-2. Starts the Go backend with `HOMEOCTO_BINARY` pointing at that binary.
+1. Builds `../build/picoclaw` for launcher development.
+2. Starts the Go backend with `PICOCLAW_BINARY` pointing at that binary.
 3. Starts the Vite frontend dev server.
 
 Use this when you want the full launcher flow during development.
@@ -216,12 +216,12 @@ This:
 1. Installs frontend dependencies when needed.
 2. Builds the frontend into `backend/dist`.
 3. Embeds those assets into the Go backend.
-4. Produces `build/homeocto-launcher`.
+4. Produces `build/picoclaw-launcher`.
 
 Override the output path if needed:
 
 ```bash
-make build OUTPUT=/tmp/homeocto-launcher
+make build OUTPUT=/tmp/picoclaw-launcher
 ```
 
 From the repository root you can also use:
@@ -233,10 +233,10 @@ make build-launcher
 That writes the platform-specific launcher to:
 
 ```text
-build/homeocto-launcher-<platform>-<arch>
+build/picoclaw-launcher-<platform>-<arch>
 ```
 
-and refreshes the `build/homeocto-launcher` symlink.
+and refreshes the `build/picoclaw-launcher` symlink.
 
 ### Frontend-Only Builds
 
@@ -256,10 +256,10 @@ pnpm build:backend
 Examples:
 
 ```bash
-./build/homeocto-launcher
-./build/homeocto-launcher -console
-./build/homeocto-launcher -public
-./build/homeocto-launcher -port 19999 /path/to/config.json
+./build/picoclaw-launcher
+./build/picoclaw-launcher -console
+./build/picoclaw-launcher -public
+./build/picoclaw-launcher -port 19999 /path/to/config.json
 ```
 
 Current launcher flags:
@@ -343,12 +343,12 @@ Check these in the dashboard:
 - the model has credentials or OAuth state
 - local models such as Ollama or vLLM are reachable
 
-### The launcher cannot find `homeocto`
+### The launcher cannot find `picoclaw`
 
 Set the main binary explicitly:
 
 ```bash
-export HOMEOCTO_BINARY=/absolute/path/to/homeocto
+export PICOCLAW_BINARY=/absolute/path/to/picoclaw
 ```
 
 This affects onboarding and gateway subprocess startup.
@@ -364,4 +364,4 @@ If you run only `make dev-backend`, either run `make dev-frontend` alongside it 
 - Configuration guide: [`../docs/guides/configuration.md`](../docs/guides/configuration.md)
 - Providers: [`../docs/guides/providers.md`](../docs/guides/providers.md)
 - Troubleshooting: [`../docs/operations/troubleshooting.md`](../docs/operations/troubleshooting.md)
-- Official docs site: [docs.homeocto.io](https://docs.homeocto.io)
+- Official docs site: [docs.picoclaw.io](https://docs.picoclaw.io)

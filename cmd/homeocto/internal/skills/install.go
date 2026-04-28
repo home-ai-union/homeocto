@@ -15,8 +15,8 @@ func newInstallCommand() *cobra.Command {
 		Use:   "install",
 		Short: "Install skill from GitHub or a registry",
 		Example: `
-homeocto skills install sipeed/homeocto-skills/weather
-homeocto skills install --registry clawhub github
+picoclaw skills install sipeed/picoclaw-skills/weather
+picoclaw skills install --registry clawhub github
 `,
 		Args: func(cmd *cobra.Command, args []string) error {
 			if registry != "" {

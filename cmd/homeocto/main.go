@@ -50,19 +50,19 @@ func earlyColorDisabled() bool {
 	return false
 }
 
-func NewHomeoctoCommand() *cobra.Command {
+func NewPicoclawCommand() *cobra.Command {
 	short := fmt.Sprintf("%s PicoClaw — personal AI assistant", internal.Logo)
 	long := fmt.Sprintf(`%s PicoClaw is a lightweight personal AI assistant.
 
 Version: %s`, internal.Logo, config.FormatVersion())
 
 	cmd := &cobra.Command{
-		Use:   "homeocto",
+		Use:   "picoclaw",
 		Short: short,
 		Long:  long,
-		Example: `homeocto version
-homeocto onboard
-homeocto --no-color status`,
+		Example: `picoclaw version
+picoclaw onboard
+picoclaw --no-color status`,
 		SilenceErrors: true,
 		// Avoid plain UsageString() on stderr/stdout when a command fails; cliui
 		// renders matching panels on stderr instead.
@@ -90,7 +90,7 @@ homeocto --no-color status`,
 		migrate.NewMigrateCommand(),
 		skills.NewSkillsCommand(),
 		model.NewModelCommand(),
-		updater.NewUpdateCommand("homeocto"),
+		updater.NewUpdateCommand("picoclaw"),
 		version.NewVersionCommand(),
 	)
 
@@ -141,7 +141,7 @@ func main() {
 		}
 	}
 
-	cmd := NewHomeoctoCommand()
+	cmd := NewPicoclawCommand()
 	last, err := cmd.ExecuteC()
 	if err != nil {
 		syncCliUIColor(cmd)

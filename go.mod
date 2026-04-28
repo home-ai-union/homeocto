@@ -7,16 +7,15 @@ require (
 	github.com/AlexxIT/go2rtc v1.9.14
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/ergochat/readline v0.1.3
-	github.com/google/jsonschema-go v0.4.2
 	github.com/google/uuid v1.6.0
 	github.com/gorilla/websocket v1.5.3
 	github.com/mdp/qrterminal/v3 v3.2.1
 	github.com/muesli/termenv v0.16.0
+	github.com/sergi/go-diff v1.3.1
 	github.com/sipeed/picoclaw v0.2.7
 	github.com/spf13/cobra v1.10.2
 	github.com/spf13/pflag v1.0.10
 	github.com/stretchr/testify v1.11.1
-	go.mau.fi/util v0.9.8
 	golang.org/x/crypto v0.50.0
 	golang.org/x/sync v0.20.0
 	golang.org/x/term v0.42.0
@@ -75,6 +74,7 @@ require (
 	github.com/godbus/dbus/v5 v5.1.0 // indirect
 	github.com/gogo/protobuf v1.3.2 // indirect
 	github.com/gomarkdown/markdown v0.0.0-20260411013819-759bbc3e3207 // indirect
+	github.com/google/jsonschema-go v0.4.2 // indirect
 	github.com/grbit/go-json v0.11.0 // indirect
 	github.com/h2non/filetype v1.1.3 // indirect
 	github.com/inconshreveable/mousetrap v1.1.0 // indirect
@@ -137,6 +137,7 @@ require (
 	github.com/xo/terminfo v0.0.0-20220910002029-abceb7e1c41e // indirect
 	github.com/yosida95/uritemplate/v3 v3.0.2 // indirect
 	go.mau.fi/libsignal v0.2.1 // indirect
+	go.mau.fi/util v0.9.8 // indirect
 	go.mau.fi/whatsmeow v0.0.0-20260219150138-7ae702b1eed4 // indirect
 	go.opentelemetry.io/auto/sdk v1.1.0 // indirect
 	go.opentelemetry.io/otel v1.35.0 // indirect
