@@ -11,6 +11,8 @@ import { launcherFetch } from "@/api/http"
 
 import en from "./locales/en.json"
 import zh from "./locales/zh.json"
+import enHomeocto from "./locales/homeocto/en.json"
+import zhHomeocto from "./locales/homeocto/zh.json"
 
 dayjs.extend(relativeTime)
 dayjs.extend(localizedFormat)
@@ -27,9 +29,13 @@ i18n
     resources: {
       en: {
         translation: en,
+        homeclaw: enHomeocto,
+        homeocto: enHomeocto,
       },
       zh: {
         translation: zh,
+        homeclaw: zhHomeocto,
+        homeocto: zhHomeocto,
       },
     },
     fallbackLng: "en",

@@ -1,11 +1,11 @@
-package homeocto
+﻿package homeocto
 
 import (
 	"encoding/json"
 	"net/http"
 	"sync"
 
-	"github.com/home-ai-union/homeocto/pkg/homeocto/data"
+	"github.com/home-ai-union/homeocto/pkg/data"
 	"github.com/sipeed/picoclaw/pkg/logger"
 )
 

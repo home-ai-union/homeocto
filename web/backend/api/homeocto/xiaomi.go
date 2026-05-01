@@ -1,4 +1,4 @@
-package homeocto
+﻿package homeocto
 
 import (
 	"encoding/json"
@@ -7,7 +7,7 @@ import (
 	"sync"
 
 	"github.com/AlexxIT/go2rtc/pkg/xiaomi"
-	hcconfig "github.com/home-ai-union/homeocto/pkg/homeocto/config"
+	hcconfig "github.com/home-ai-union/homeocto/pkg/config"
 	"github.com/sipeed/picoclaw/pkg/logger"
 )
 

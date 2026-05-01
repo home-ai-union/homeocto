@@ -1,4 +1,4 @@
-package homeocto
+﻿package homeocto
 
 import (
 	"encoding/json"
@@ -8,8 +8,8 @@ import (
 	"strings"
 
 	"github.com/AlexxIT/go2rtc/pkg/mdns"
-	"github.com/home-ai-union/homeocto/pkg/homeocto/data"
-	"github.com/home-ai-union/homeocto/pkg/homeocto/third/homekit"
+	"github.com/home-ai-union/homeocto/pkg/data"
+	"github.com/home-ai-union/homeocto/pkg/third/homekit"
 )
 
 // HomeKitManager handles HomeKit device discovery and pairing

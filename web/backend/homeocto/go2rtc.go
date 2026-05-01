@@ -1,4 +1,4 @@
-package homeocto
+﻿package homeocto
 
 import (
 	"bufio"
@@ -8,15 +8,14 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
-	"path/filepath"
 	"runtime"
 	"strconv"
 	"sync"
 	"syscall"
 	"time"
 
-	hcconfig "github.com/home-ai-union/homeocto/pkg/homeocto/config"
-	"github.com/home-ai-union/homeocto/web/backend/utils"
+	hcconfig "github.com/home-ai-union/homeocto/pkg/config"
+	"github.com/home-ai-union/homeocto/pkg/utils"
 	"github.com/sipeed/picoclaw/pkg/logger"
 )
 
@@ -104,34 +103,12 @@ func (m *Go2RTCManager) startReady() (bool, string, error) {
 	return true, "", nil
 }
 
-// findGo2RTCBinary locates the go2rtc executable.
-// Search order:
-//  1. Same directory as the current executable
-//  2. Falls back to "go2rtc" and relies on $PATH
+// go2rtcBinaryCache caches the resolved go2rtc binary path.
+var go2rtcBinaryCache utils.BinaryCache
+
+// findGo2RTCBinary locates the go2rtc executable (cached after first call).
 func findGo2RTCBinary() string {
-	binaryName := "go2rtc"
-	if runtime.GOOS == "windows" {
-		binaryName = "go2rtc.exe"
-	}
-
-	// Check same directory as picoclaw binary
-	picoclawBinary := utils.FindHomeoctoBinary()
-	if picoclawBinary != "picoclaw" && picoclawBinary != "picoclaw.exe" {
-		candidate := filepath.Join(filepath.Dir(picoclawBinary), binaryName)
-		if info, err := os.Stat(candidate); err == nil && !info.IsDir() {
-			return candidate
-		}
-	}
-
-	// Check same directory as current executable
-	if exe, err := os.Executable(); err == nil {
-		candidate := filepath.Join(filepath.Dir(exe), binaryName)
-		if info, err := os.Stat(candidate); err == nil && !info.IsDir() {
-			return candidate
-		}
-	}
-
-	return binaryName
+	return utils.FindBinary("go2rtc", &go2rtcBinaryCache)
 }
 
 func (m *Go2RTCManager) isProcessAliveLocked(cmd *exec.Cmd) bool {
