@@ -5,7 +5,6 @@ package gateway
 import (
 	"errors"
 	"fmt"
-	"os"
 
 	hcpkg "github.com/home-ai-union/homeocto/pkg"
 	hcconfig "github.com/home-ai-union/homeocto/pkg/config"
@@ -35,10 +34,6 @@ func runHomeOctoInit(agentLoop *agent.AgentLoop) error {
 	// Load home.json config
 	hcfg, err := hcconfig.LoadHomeConfig()
 	if err != nil {
-		if os.IsNotExist(err) {
-			logger.InfoCF("homeocto", "home.json not found, HomeOcto disabled", nil)
-			return nil
-		}
 		return fmt.Errorf("load home config: %w", err)
 	}
 
@@ -57,7 +52,25 @@ func runHomeOctoInit(agentLoop *agent.AgentLoop) error {
 		return fmt.Errorf("create homeocto: %w", err)
 	}
 
+	// Initialize third-party device clients (Xiaomi, Tuya) FIRST
+	// This must happen before tool registration so that tools have clients available
+	thirdf := ho.ThirdFactory()
+	if thirdf != nil {
+		clients, err := thirdf.GetClients()
+		if err != nil {
+			logger.WarnCF("homeocto", "Failed to init third-party clients", map[string]any{
+				"error": err.Error(),
+			})
+		} else if clients != nil {
+			logger.InfoCF("homeocto", "Third-party clients initialized", map[string]any{
+				"brands": clients.ListBrands(),
+			})
+			ho.Factory().SetClients(clients)
+		}
+	}
+
 	// Create tool registry and register homeocto tools
+	// Tools will have clients already injected via registerClientsSetter
 	toolRegistry := ho.ToolRegistry()
 	ho.RegisterTools(toolRegistry)
 
@@ -87,22 +100,6 @@ func runHomeOctoInit(agentLoop *agent.AgentLoop) error {
 		logger.InfoCF("homeocto", "HomeOcto WebSocket server started", map[string]any{
 			"port": hcfg.Port,
 		})
-	}
-
-	// Initialize third-party device clients (Xiaomi, Tuya)
-	thirdf := ho.ThirdFactory()
-	if thirdf != nil {
-		clients, err := thirdf.GetClients()
-		if err != nil {
-			logger.WarnCF("homeocto", "Failed to init third-party clients", map[string]any{
-				"error": err.Error(),
-			})
-		} else if clients != nil {
-			logger.InfoCF("homeocto", "Third-party clients initialized", map[string]any{
-				"brands": clients.ListBrands(),
-			})
-			ho.Factory().SetClients(clients)
-		}
 	}
 
 	// Store context for later placement into services.extData

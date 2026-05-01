@@ -75,6 +75,9 @@ type Factory struct {
 	// clientsSetters stores all objects that need to receive clients updates
 	clientsSetters []ClientsSetter
 	clientsMu      sync.Mutex
+	// initializedClients stores the clients that have been initialized
+	// This allows late-registered tools to receive already-initialized clients
+	initializedClients *third.ClientsManager
 }
 
 // ClientsSetter is the interface for objects that can receive clients updates
@@ -100,10 +103,16 @@ func NewFactory(workspace string, cfg *config.Config, hcfg *homeconfig.HomeConfi
 
 // registerClientsSetter adds an object to the clients setters list.
 // This is called automatically when constructing tools that need clients.
+// If clients have already been initialized, they are immediately injected.
 func (f *Factory) registerClientsSetter(setter ClientsSetter) {
 	f.clientsMu.Lock()
 	defer f.clientsMu.Unlock()
 	f.clientsSetters = append(f.clientsSetters, setter)
+
+	// If clients were already initialized, inject them immediately
+	if f.initializedClients != nil {
+		setter.SetClients(f.initializedClients)
+	}
 }
 
 // GetHomeoctoConfig returns the HomeOcto configuration
@@ -423,6 +432,9 @@ func (f *Factory) GetCLITool() (*hometool.CLITool, error) {
 func (f *Factory) SetClients(clients *third.ClientsManager) {
 	f.clientsMu.Lock()
 	defer f.clientsMu.Unlock()
+
+	// Store the initialized clients for late-registered tools
+	f.initializedClients = clients
 
 	// Set clients for all registered setters
 	for _, setter := range f.clientsSetters {
