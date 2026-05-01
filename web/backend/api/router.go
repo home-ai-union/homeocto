@@ -5,6 +5,7 @@ import (
 	"strings"
 	"sync"
 
+	"github.com/home-ai-union/homeocto/web/backend/api/homeocto"
 	"github.com/home-ai-union/homeocto/web/backend/launcherconfig"
 )
 
@@ -25,17 +26,19 @@ type Handler struct {
 	weixinFlows          map[string]*weixinFlow
 	wecomMu              sync.Mutex
 	wecomFlows           map[string]*wecomFlow
+	xiaomiManager        *homeocto.XiaomiManager
 }
 
 // NewHandler creates an instance of the API handler.
 func NewHandler(configPath string) *Handler {
 	return &Handler{
-		configPath:  configPath,
-		serverPort:  launcherconfig.DefaultPort,
-		oauthFlows:  make(map[string]*oauthFlow),
-		oauthState:  make(map[string]string),
-		weixinFlows: make(map[string]*weixinFlow),
-		wecomFlows:  make(map[string]*wecomFlow),
+		configPath:    configPath,
+		serverPort:    launcherconfig.DefaultPort,
+		oauthFlows:    make(map[string]*oauthFlow),
+		oauthState:    make(map[string]string),
+		weixinFlows:   make(map[string]*weixinFlow),
+		wecomFlows:    make(map[string]*wecomFlow),
+		xiaomiManager: homeocto.NewXiaomiManager(),
 	}
 }
 
@@ -70,6 +73,9 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 	// Pico Channel (WebSocket chat)
 	h.registerPicoRoutes(mux)
+
+	// HomeOcto tool WebSocket and config
+	h.registerHomeOctoRoutes(mux)
 
 	// Gateway process lifecycle
 	h.registerGatewayRoutes(mux)
@@ -108,6 +114,11 @@ func (h *Handler) RegisterRoutes(mux *http.ServeMux) {
 
 	// WeCom QR login flow
 	h.registerWecomRoutes(mux)
+
+	// Xiaomi smart home integration
+	if h.xiaomiManager != nil {
+		h.xiaomiManager.RegisterRoutes(mux)
+	}
 }
 
 // Shutdown gracefully shuts down the handler, stopping the gateway if it was started by this handler.

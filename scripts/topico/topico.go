@@ -28,8 +28,11 @@ func getDefaultConfig() SyncConfig {
 			"web\\frontend\\src\\components\\app-sidebar.tsx",
 			"web\\frontend\\src\\routeTree.gen.ts",
 			"web\\frontend\\src\\i18n\\index.ts",
+			"web\\frontend\\src\\homeocto\\api\\device-control-websocket.ts",
 			"web\\backend\\utils\\runtime.go",
 			"cmd\\homeocto\\internal\\gateway\\command.go",
+			"web\\backend\\api\\homeocto_api.go",
+			"web\\backend\\api\\router.go",
 		},
 		Dirs: []string{
 			"web\\frontend\\src\\homeocto",

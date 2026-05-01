@@ -2,6 +2,7 @@ package config
 
 import (
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"sync"
@@ -28,23 +29,30 @@ func LoadYamlConfig(filepath string, v any) error {
 }
 
 // PatchConfig patches a YAML configuration file at the given path.
-func PatchConfig(filepath string, path []string, value any) error {
-	if filepath == "" {
+// If the file does not exist, it creates a new one with the patched value.
+func PatchConfig(fpath string, path []string, value any) error {
+	if fpath == "" {
 		return errors.New("config file disabled")
 	}
 
 	configMu.Lock()
 	defer configMu.Unlock()
 
-	// empty config is OK
-	b, _ := os.ReadFile(filepath)
+	// empty config is OK - if file doesn't exist, start with empty bytes
+	b, _ := os.ReadFile(fpath)
 
 	b, err := yaml.Patch(b, path, value)
 	if err != nil {
 		return err
 	}
 
-	return os.WriteFile(filepath, b, 0644)
+	// Ensure directory exists
+	dir := filepath.Dir(fpath)
+	if err := os.MkdirAll(dir, 0755); err != nil {
+		return fmt.Errorf("failed to create config directory: %w", err)
+	}
+
+	return os.WriteFile(fpath, b, 0644)
 }
 
 // GetGo2RTCPath returns the full path to the go2rtc.yaml config file.
@@ -53,8 +61,18 @@ func GetGo2RTCPath() string {
 }
 
 // LoadGo2RTCConfig loads the go2rtc.yaml configuration.
+// If the file does not exist, it returns nil without error (empty config).
 func LoadGo2RTCConfig(v any) error {
-	return LoadYamlConfig(GetGo2RTCPath(), v)
+	path := GetGo2RTCPath()
+
+	// Check if file exists
+	if _, err := os.Stat(path); os.IsNotExist(err) {
+		// File doesn't exist, return nil without error
+		// The v parameter will remain at its zero value
+		return nil
+	}
+
+	return LoadYamlConfig(path, v)
 }
 
 // PatchGo2RTCConfig patches the go2rtc.yaml configuration.

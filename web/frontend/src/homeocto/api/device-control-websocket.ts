@@ -6,6 +6,11 @@
 import { getDefaultStore } from "jotai"
 import { gatewayAtom } from "@/store/gateway"
 
+// HomeOcto config cache
+let homeoctoWsUrl: string | null = null
+let homeoctoToken: string | null = null
+let homeoctoConfigLoaded = false
+
 export type DeviceControlWSStatus =
   | "disconnected"
   | "connecting"
@@ -31,6 +36,37 @@ export class DeviceControlWebSocket {
   private lastGatewayStatus: string | null = null
 
   // ── Connection lifecycle ────────────────────────────────────────────────
+
+  /**
+   * Load HomeOcto config and cache the WebSocket URL.
+   */
+  private async loadHomeOctoConfig(): Promise<{ wsUrl: string | null, token: string | null }> {
+    if (homeoctoConfigLoaded) {
+      return { wsUrl: homeoctoWsUrl, token: homeoctoToken }
+    }
+
+    try {
+      const response = await fetch("/api/homeocto/config")
+      if (!response.ok) {
+        console.warn("[DeviceControlWS] Failed to load HomeOcto config")
+        return { wsUrl: null, token: null }
+      }
+
+      const config = await response.json()
+      homeoctoConfigLoaded = true
+      homeoctoWsUrl = config.ws_url || null
+      homeoctoToken = config.token || null
+
+      if (!homeoctoWsUrl) {
+        console.warn("[DeviceControlWS] HomeOcto WS URL not configured")
+      }
+
+      return { wsUrl: homeoctoWsUrl, token: homeoctoToken }
+    } catch (error) {
+      console.error("[DeviceControlWS] Error loading HomeOcto config:", error)
+      return { wsUrl: null, token: null }
+    }
+  }
 
   async connect(): Promise<void> {
     if (
@@ -178,13 +214,23 @@ export class DeviceControlWebSocket {
       return
     }
 
+    // Load HomeOcto config to get WS URL and token
+    const { wsUrl, token } = await this.loadHomeOctoConfig()
+    if (!wsUrl) {
+      console.warn("[DeviceControlWS] HomeOcto WebSocket URL not available")
+      this.setStatus("error")
+      return
+    }
+
     this.setStatus("connecting")
 
-    // The launcher WebSocket proxy automatically injects the pico token
-    // on the server side, so we don't need to fetch it in the frontend.
-    const scheme = window.location.protocol === "https:" ? "wss:" : "ws:"
-    const url = `${scheme}//${window.location.host}/pico/ws-tool`
-    const socket = new WebSocket(url)
+    console.log("[DeviceControlWS] Connecting to HomeOcto WS:", wsUrl)
+    
+    // Create WebSocket with token in subprotocol
+    const protocols = token ? [`token.${token}`] : []
+    const socket = protocols.length > 0 
+      ? new WebSocket(wsUrl, protocols)
+      : new WebSocket(wsUrl)
 
     socket.onopen = () => {
       console.log("[DeviceControlWS] Connected to tool WebSocket")
