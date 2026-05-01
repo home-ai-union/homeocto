@@ -497,6 +497,7 @@ func shouldSkipDirectory(relPath string) bool {
 		".next",
 		".turbo",
 		".tanstack",
+		"onboard",
 	}
 
 	for _, skip := range skipDirs {
