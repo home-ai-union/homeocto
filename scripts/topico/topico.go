@@ -33,6 +33,7 @@ func getDefaultConfig() SyncConfig {
 			"cmd\\homeocto\\internal\\gateway\\command.go",
 			"web\\backend\\api\\homeocto_api.go",
 			"web\\backend\\api\\router.go",
+			"web\\picoclaw-launcher.desktop",
 		},
 		Dirs: []string{
 			"web\\frontend\\src\\homeocto",

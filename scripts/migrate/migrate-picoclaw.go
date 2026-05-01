@@ -5,32 +5,42 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"unicode/utf8"
-
-	"github.com/sergi/go-diff/diffmatchpatch"
 )
 
-// 替换规则 - 按长度降序排列，确保长字符串优先匹配
+// 替换规则 - 按长度降序排列,确保长字符串优先匹配
 var replacements = []struct {
 	oldStr string
 	newStr string
 }{
-	{"github.com/sipeed/picoclaw/cmd/picoclaw", "github.com/home-ai-union/homeocto/cmd/homeocto"},
 	{"github.com/sipeed/picoclaw", "github.com/home-ai-union/homeocto"},
 }
 
-// 不替换的路径前缀（外部依赖包）
-var skipReplacementPrefixes = []string{
-	"github.com/sipeed/picoclaw/pkg", // 外部依赖包，保持原样
+// cmd 目录专用的替换规则
+var cmdReplacements = []struct {
+	oldStr string
+	newStr string
+}{
+	{"github.com/sipeed/picoclaw/cmd/picoclaw", "github.com/home-ai-union/homeocto/cmd/homeocto"},
+	{"github.com/sipeed/picoclaw/cmd", "github.com/home-ai-union/homeocto/cmd"},
+	{"github.com/sipeed/picoclaw", "github.com/home-ai-union/homeocto"},
 }
-var gitMergeFile = []string{
-	"frontend/src/routeTree.gen.ts", // 前端文件使用 Git 合并
-	"frontend/src/components/app-header.tsx",
-	"frontend/src/components/app-layout.tsx",
-	"frontend/src/components/app-sidebar.tsx",
-	"backend/utils/runtime.go", // 后端运行时文件
+
+// web/backend 目录专用的替换规则
+var webBackendReplacements = []struct {
+	oldStr string
+	newStr string
+}{
+	{"github.com/sipeed/picoclaw/web/backend/", "github.com/home-ai-union/homeocto/web/backend/"},
+	{"github.com/sipeed/picoclaw", "github.com/home-ai-union/homeocto"},
+}
+
+// 不替换的路径前缀(外部依赖包)
+var skipReplacementPrefixes = []string{
+	"github.com/sipeed/picoclaw/pkg", // 外部依赖包,保持原样
 }
 
 func main() {
@@ -58,37 +68,421 @@ func main() {
 	fmt.Printf("Source (picoclaw): %s\n", picoclawRoot)
 	fmt.Printf("Target (homeocto): %s\n\n", homeoctoRoot)
 
-	// 1. 拷贝 cmd/picoclaw -> cmd/homeocto
-	srcCmdDir := filepath.Join(picoclawRoot, "cmd", "picoclaw")
-	dstCmdDir := filepath.Join(homeoctoRoot, "cmd", "homeocto")
+	// 检查 homeocto 是否有未提交的更改
+	fmt.Println("=== Checking Git status for homeocto ===")
+	if err := checkGitStatus(homeoctoRoot); err != nil {
+		fmt.Fprintf(os.Stderr, "Error: %v\n", err)
+		fmt.Fprintf(os.Stderr, "Please commit or stash your changes before running migration.\n")
+		os.Exit(1)
+	}
+	fmt.Println("✓ Git working directory is clean\n")
 
-	if _, err := os.Stat(srcCmdDir); !os.IsNotExist(err) {
-		fmt.Println("=== Copying cmd/picoclaw -> cmd/homeocto ===")
-		if err := copyAndReplace(srcCmdDir, dstCmdDir); err != nil {
-			fmt.Fprintf(os.Stderr, "Error copying cmd directory: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Println("✓ cmd directory copied successfully\n")
-	} else {
-		fmt.Println("⚠ Warning: cmd/picoclaw not found in source\n")
+	// 1. 处理 cmd 目录
+	if err := processCmdDir(picoclawRoot, homeoctoRoot); err != nil {
+		fmt.Fprintf(os.Stderr, "Error processing cmd directory: %v\n", err)
+		os.Exit(1)
 	}
 
-	// 2. 拷贝 web -> web
-	srcWebDir := filepath.Join(picoclawRoot, "web")
-	dstWebDir := filepath.Join(homeoctoRoot, "web")
+	// 2. 处理 web/backend 目录
+	if err := processWebBackendDir(picoclawRoot, homeoctoRoot); err != nil {
+		fmt.Fprintf(os.Stderr, "Error processing web/backend directory: %v\n", err)
+		os.Exit(1)
+	}
 
-	if _, err := os.Stat(srcWebDir); !os.IsNotExist(err) {
-		fmt.Println("=== Copying web -> web ===")
-		if err := copyAndReplace(srcWebDir, dstWebDir); err != nil {
-			fmt.Fprintf(os.Stderr, "Error copying web directory: %v\n", err)
-			os.Exit(1)
-		}
-		fmt.Println("✓ web directory copied successfully\n")
-	} else {
-		fmt.Println("⚠ Warning: web directory not found in source\n")
+	// 3. 处理 web/frontend 目录
+	if err := processWebFrontendDir(picoclawRoot, homeoctoRoot); err != nil {
+		fmt.Fprintf(os.Stderr, "Error processing web/frontend directory: %v\n", err)
+		os.Exit(1)
 	}
 
 	fmt.Println("=== Migration completed successfully! ===")
+}
+
+// 检查 Git 工作目录是否有未提交的更改
+func checkGitStatus(repoPath string) error {
+	// 检查是否是 Git 仓库
+	gitDir := filepath.Join(repoPath, ".git")
+	if _, err := os.Stat(gitDir); os.IsNotExist(err) {
+		fmt.Println("⚠ Warning: Not a Git repository, skipping check")
+		return nil
+	}
+
+	// 执行 git status --porcelain 检查是否有未提交的更改
+	cmd := exec.Command("git", "status", "--porcelain")
+	cmd.Dir = repoPath
+	output, err := cmd.Output()
+	if err != nil {
+		return fmt.Errorf("failed to run git status: %w", err)
+	}
+
+	// 如果输出不为空，说明有未提交的更改
+	if len(strings.TrimSpace(string(output))) > 0 {
+		fmt.Println("⚠ Found uncommitted changes in homeocto:")
+		fmt.Println(string(output))
+		return fmt.Errorf("working directory has uncommitted changes")
+	}
+
+	return nil
+}
+
+// 处理 cmd 目录迁移
+func processCmdDir(picoclawRoot, homeoctoRoot string) error {
+	srcCmdDir := filepath.Join(picoclawRoot, "cmd", "picoclaw")
+	dstCmdDir := filepath.Join(homeoctoRoot, "cmd", "homeocto")
+
+	if _, err := os.Stat(srcCmdDir); os.IsNotExist(err) {
+		fmt.Println("⚠ Warning: cmd/picoclaw not found in source\n")
+		return nil
+	}
+
+	fmt.Println("=== Processing cmd/picoclaw -> cmd/homeocto ===")
+
+	// 先删除 homeocto 的 cmd 目录下的所有内容
+	fmt.Println("  🗑 Cleaning cmd directory in homeocto...")
+	if err := cleanDirectory(filepath.Join(homeoctoRoot, "cmd")); err != nil {
+		return fmt.Errorf("clean cmd directory: %w", err)
+	}
+
+	// 拷贝并替换
+	if err := copyCmdWithReplace(srcCmdDir, dstCmdDir); err != nil {
+		return fmt.Errorf("copy cmd directory: %w", err)
+	}
+
+	fmt.Println("✓ cmd directory copied and replaced successfully\n")
+	return nil
+}
+
+// 处理 web/backend 目录迁移
+func processWebBackendDir(picoclawRoot, homeoctoRoot string) error {
+	srcBackendDir := filepath.Join(picoclawRoot, "web", "backend")
+	dstBackendDir := filepath.Join(homeoctoRoot, "web", "backend")
+
+	if _, err := os.Stat(srcBackendDir); os.IsNotExist(err) {
+		fmt.Println("⚠ Warning: web/backend directory not found in source\n")
+		return nil
+	}
+
+	fmt.Println("=== Processing web/backend -> web/backend ===")
+
+	// 先删除 homeocto 的 web/backend 目录
+	fmt.Println("  🗑 Cleaning web/backend directory in homeocto...")
+	if err := os.RemoveAll(dstBackendDir); err != nil {
+		return fmt.Errorf("remove web/backend directory: %w", err)
+	}
+
+	// 拷贝并替换
+	if err := copyWebBackendWithReplace(srcBackendDir, dstBackendDir); err != nil {
+		return fmt.Errorf("copy web/backend directory: %w", err)
+	}
+
+	fmt.Println("✓ web/backend directory copied and replaced successfully\n")
+	return nil
+}
+
+// 处理 web/frontend 目录迁移
+func processWebFrontendDir(picoclawRoot, homeoctoRoot string) error {
+	srcFrontendDir := filepath.Join(picoclawRoot, "web", "frontend")
+	dstFrontendDir := filepath.Join(homeoctoRoot, "web", "frontend")
+
+	if _, err := os.Stat(srcFrontendDir); os.IsNotExist(err) {
+		fmt.Println("⚠ Warning: web/frontend directory not found in source\n")
+		return nil
+	}
+
+	fmt.Println("=== Processing web/frontend -> web/frontend ===")
+
+	// 先删除 homeocto 的 web/frontend 目录
+	fmt.Println("  🗑 Cleaning web/frontend directory in homeocto...")
+	if err := os.RemoveAll(dstFrontendDir); err != nil {
+		return fmt.Errorf("remove web/frontend directory: %w", err)
+	}
+
+	// 拷贝（frontend 不需要替换，直接拷贝）
+	if err := copyDir(srcFrontendDir, dstFrontendDir); err != nil {
+		return fmt.Errorf("copy web/frontend directory: %w", err)
+	}
+
+	fmt.Println("✓ web/frontend directory copied successfully\n")
+	return nil
+}
+
+// 拷贝 web/backend 目录并执行专用替换
+func copyWebBackendWithReplace(srcDir, dstDir string) error {
+	return filepath.Walk(srcDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// 计算相对路径
+		relPath, err := filepath.Rel(srcDir, path)
+		if err != nil {
+			return err
+		}
+
+		// 目标路径
+		targetPath := filepath.Join(dstDir, relPath)
+
+		if info.IsDir() {
+			// 跳过某些目录
+			if shouldSkipDirectory(relPath) {
+				return filepath.SkipDir
+			}
+			// 创建目录
+			return os.MkdirAll(targetPath, info.Mode())
+		}
+
+		// 跳过某些文件
+		if shouldSkipFile(relPath) {
+			return nil
+		}
+
+		// 处理文件
+		if isTextFile(relPath) {
+			return copyWebBackendTextFileWithReplace(path, targetPath)
+		} else {
+			return copyBinaryFile(path, targetPath)
+		}
+	})
+}
+
+// 拷贝 web/backend 文本文件并执行专用替换
+func copyWebBackendTextFileWithReplace(src, dst string) error {
+	// 打开源文件
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("open source file %s: %w", src, err)
+	}
+	defer srcFile.Close()
+
+	// 创建目标目录
+	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+		return fmt.Errorf("create directory %s: %w", filepath.Dir(dst), err)
+	}
+
+	// 创建目标文件
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("create destination file %s: %w", dst, err)
+	}
+	defer dstFile.Close()
+
+	// 使用带缓冲的读写器
+	reader := bufio.NewReader(srcFile)
+	writer := bufio.NewWriter(dstFile)
+	defer writer.Flush()
+
+	// 逐行读取并替换
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil && err != io.EOF {
+			return fmt.Errorf("read line from %s: %w", src, err)
+		}
+
+		// 检查是否为有效的UTF-8
+		if !utf8.ValidString(line) {
+			// 如果不是UTF-8，直接复制原始内容
+			if _, err := writer.WriteString(line); err != nil {
+				return fmt.Errorf("write line to %s: %w", dst, err)
+			}
+		} else {
+			// 检查是否包含需要跳过的路径前缀
+			shouldSkip := false
+			for _, prefix := range skipReplacementPrefixes {
+				if strings.Contains(line, prefix) {
+					shouldSkip = true
+					break
+				}
+			}
+
+			var replacedLine string
+			if shouldSkip {
+				replacedLine = line
+			} else {
+				// 使用 web/backend 专用替换规则
+				replacedLine = line
+				for _, rule := range webBackendReplacements {
+					replacedLine = strings.ReplaceAll(replacedLine, rule.oldStr, rule.newStr)
+				}
+			}
+
+			if _, err := writer.WriteString(replacedLine); err != nil {
+				return fmt.Errorf("write line to %s: %w", dst, err)
+			}
+		}
+
+		if err == io.EOF {
+			break
+		}
+	}
+
+	return nil
+}
+
+// 通用目录拷贝（不执行替换）
+func copyDir(srcDir, dstDir string) error {
+	return filepath.Walk(srcDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// 计算相对路径
+		relPath, err := filepath.Rel(srcDir, path)
+		if err != nil {
+			return err
+		}
+
+		// 目标路径
+		targetPath := filepath.Join(dstDir, relPath)
+
+		if info.IsDir() {
+			// 跳过某些目录
+			if shouldSkipDirectory(relPath) {
+				return filepath.SkipDir
+			}
+			// 创建目录
+			return os.MkdirAll(targetPath, info.Mode())
+		}
+
+		// 跳过某些文件
+		if shouldSkipFile(relPath) {
+			return nil
+		}
+
+		// 直接拷贝文件（不替换）
+		return copyBinaryFile(path, targetPath)
+	})
+}
+
+// 清理目录下的所有文件和子目录
+func cleanDirectory(dir string) error {
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		if os.IsNotExist(err) {
+			// 目录不存在，无需清理
+			return nil
+		}
+		return fmt.Errorf("read directory %s: %w", dir, err)
+	}
+
+	for _, entry := range entries {
+		path := filepath.Join(dir, entry.Name())
+		if err := os.RemoveAll(path); err != nil {
+			return fmt.Errorf("remove %s: %w", path, err)
+		}
+	}
+	return nil
+}
+
+// 拷贝 cmd 目录并执行专用替换
+func copyCmdWithReplace(srcDir, dstDir string) error {
+	return filepath.Walk(srcDir, func(path string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		// 计算相对路径
+		relPath, err := filepath.Rel(srcDir, path)
+		if err != nil {
+			return err
+		}
+
+		// 目标路径
+		targetPath := filepath.Join(dstDir, relPath)
+
+		if info.IsDir() {
+			// 跳过某些目录
+			if shouldSkipDirectory(relPath) {
+				return filepath.SkipDir
+			}
+			// 创建目录
+			return os.MkdirAll(targetPath, info.Mode())
+		}
+
+		// 跳过某些文件
+		if shouldSkipFile(relPath) {
+			return nil
+		}
+
+		// 处理文件
+		if isTextFile(relPath) {
+			return copyCmdTextFileWithReplace(path, targetPath)
+		} else {
+			return copyBinaryFile(path, targetPath)
+		}
+	})
+}
+
+// 拷贝 cmd 文本文件并执行专用替换
+func copyCmdTextFileWithReplace(src, dst string) error {
+	// 打开源文件
+	srcFile, err := os.Open(src)
+	if err != nil {
+		return fmt.Errorf("open source file %s: %w", src, err)
+	}
+	defer srcFile.Close()
+
+	// 创建目标目录
+	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+		return fmt.Errorf("create directory %s: %w", filepath.Dir(dst), err)
+	}
+
+	// 创建目标文件
+	dstFile, err := os.Create(dst)
+	if err != nil {
+		return fmt.Errorf("create destination file %s: %w", dst, err)
+	}
+	defer dstFile.Close()
+
+	// 使用带缓冲的读写器
+	reader := bufio.NewReader(srcFile)
+	writer := bufio.NewWriter(dstFile)
+	defer writer.Flush()
+
+	// 逐行读取并替换
+	for {
+		line, err := reader.ReadString('\n')
+		if err != nil && err != io.EOF {
+			return fmt.Errorf("read line from %s: %w", src, err)
+		}
+
+		// 检查是否为有效的UTF-8
+		if !utf8.ValidString(line) {
+			// 如果不是UTF-8，直接复制原始内容
+			if _, err := writer.WriteString(line); err != nil {
+				return fmt.Errorf("write line to %s: %w", dst, err)
+			}
+		} else {
+			// 检查是否包含需要跳过的路径前缀
+			shouldSkip := false
+			for _, prefix := range skipReplacementPrefixes {
+				if strings.Contains(line, prefix) {
+					shouldSkip = true
+					break
+				}
+			}
+
+			var replacedLine string
+			if shouldSkip {
+				replacedLine = line
+			} else {
+				// 使用 cmd 专用替换规则
+				replacedLine = line
+				for _, rule := range cmdReplacements {
+					replacedLine = strings.ReplaceAll(replacedLine, rule.oldStr, rule.newStr)
+				}
+			}
+
+			if _, err := writer.WriteString(replacedLine); err != nil {
+				return fmt.Errorf("write line to %s: %w", dst, err)
+			}
+		}
+
+		if err == io.EOF {
+			break
+		}
+	}
+
+	return nil
 }
 
 // 判断是否应该跳过某个目录
@@ -107,25 +501,6 @@ func shouldSkipDirectory(relPath string) bool {
 
 	for _, skip := range skipDirs {
 		if strings.Contains(relPath, skip) {
-			return true
-		}
-	}
-	return false
-}
-
-// 判断是否应该使用 Git 合并
-func shouldUseGitMerge(relPath string) bool {
-	// 统一转换为正斜杠，支持跨平台
-	normalizedPath := filepath.ToSlash(relPath)
-
-	for _, prefix := range gitMergeFile {
-		// 也将配置中的路径统一为正斜杠
-		normalizedPrefix := filepath.ToSlash(prefix)
-
-		// 精确匹配或前缀匹配
-		if normalizedPath == normalizedPrefix ||
-			strings.HasPrefix(normalizedPath, normalizedPrefix) ||
-			strings.Contains(normalizedPath, normalizedPrefix) {
 			return true
 		}
 	}
@@ -182,239 +557,6 @@ func isTextFile(path string) bool {
 	}
 
 	return textExtensions[ext]
-}
-
-// 拷贝目录并执行替换（支持 Git 合并）
-func copyAndReplace(srcDir, dstDir string) error {
-	return filepath.Walk(srcDir, func(path string, info os.FileInfo, err error) error {
-		if err != nil {
-			return err
-		}
-
-		// 计算相对路径
-		relPath, err := filepath.Rel(srcDir, path)
-		if err != nil {
-			return err
-		}
-
-		// 目标路径
-		targetPath := filepath.Join(dstDir, relPath)
-
-		if info.IsDir() {
-			// 跳过某些目录
-			if shouldSkipDirectory(relPath) {
-				return filepath.SkipDir
-			}
-			// 创建目录
-			return os.MkdirAll(targetPath, info.Mode())
-		}
-
-		// 跳过某些文件（不处理）
-		if shouldSkipFile(relPath) {
-			return nil
-		}
-
-		// 检查目标文件是否已存在
-		if _, err := os.Stat(targetPath); err == nil {
-			// 目标文件已存在，检查是否需要 Git 合并
-			if shouldUseGitMerge(relPath) && isTextFile(relPath) {
-				// 使用 Git 合并
-				return mergeTextFiles(path, targetPath)
-			} else if isTextFile(relPath) {
-				// 普通文本文件，直接覆盖（应用替换）
-				fmt.Printf("  📝 Overwriting: %s\n", relPath)
-				return copyTextFileWithReplace(path, targetPath)
-			} else {
-				// 二进制文件直接覆盖
-				fmt.Printf("  ⚠ Overwriting binary file: %s\n", relPath)
-				return copyBinaryFile(path, targetPath)
-			}
-		}
-
-		// 目标文件不存在，直接复制并替换
-		if isTextFile(relPath) {
-			return copyTextFileWithReplace(path, targetPath)
-		} else {
-			return copyBinaryFile(path, targetPath)
-		}
-	})
-}
-
-// 拷贝文本文件并执行替换（保持 UTF-8 编码，避免中文乱码）
-func copyTextFileWithReplace(src, dst string) error {
-	// 打开源文件
-	srcFile, err := os.Open(src)
-	if err != nil {
-		return fmt.Errorf("open source file %s: %w", src, err)
-	}
-	defer srcFile.Close()
-
-	// 创建目标目录
-	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
-		return fmt.Errorf("create directory %s: %w", filepath.Dir(dst), err)
-	}
-
-	// 创建目标文件
-	dstFile, err := os.Create(dst)
-	if err != nil {
-		return fmt.Errorf("create destination file %s: %w", dst, err)
-	}
-	defer dstFile.Close()
-
-	// 使用带缓冲的读写器
-	reader := bufio.NewReader(srcFile)
-	writer := bufio.NewWriter(dstFile)
-	defer writer.Flush()
-
-	// 逐行读取并替换
-	for {
-		line, err := reader.ReadString('\n')
-		if err != nil && err != io.EOF {
-			return fmt.Errorf("read line from %s: %w", src, err)
-		}
-
-		// 检查是否为有效的UTF-8
-		if !utf8.ValidString(line) {
-			// 如果不是UTF-8，直接复制原始内容（不替换）
-			if _, err := writer.WriteString(line); err != nil {
-				return fmt.Errorf("write line to %s: %w", dst, err)
-			}
-		} else {
-			// 检查是否包含需要跳过的路径前缀（如外部依赖包）
-			shouldSkip := false
-			for _, prefix := range skipReplacementPrefixes {
-				if strings.Contains(line, prefix) {
-					shouldSkip = true
-					break
-				}
-			}
-
-			var replacedLine string
-			if shouldSkip {
-				// 跳过替换，保持原样
-				replacedLine = line
-			} else {
-				// 执行替换（按顺序执行，确保长字符串优先）
-				replacedLine = line
-				for _, rule := range replacements {
-					replacedLine = strings.ReplaceAll(replacedLine, rule.oldStr, rule.newStr)
-				}
-			}
-
-			if _, err := writer.WriteString(replacedLine); err != nil {
-				return fmt.Errorf("write line to %s: %w", dst, err)
-			}
-		}
-
-		if err == io.EOF {
-			break
-		}
-	}
-
-	return nil
-}
-
-// 使用 go-diff 进行智能合并
-// 策略：以 homeocto (dst) 的内容为准，将其修改应用到 picoclaw (src) 上
-func mergeTextFiles(src, dst string) error {
-	fmt.Printf("  🔄 Merging with go-diff: %s\n", filepath.Base(dst))
-
-	// 读取目标文件（homeocto 当前版本 - 这是权威版本）
-	dstContent, err := os.ReadFile(dst)
-	if err != nil {
-		return fmt.Errorf("read destination file: %w", err)
-	}
-
-	// 读取源文件（picoclaw 版本）并应用替换
-	srcContent, err := readFileWithReplace(src)
-	if err != nil {
-		return fmt.Errorf("read source file with replace: %w", err)
-	}
-
-	// 使用 go-diff 进行合并
-	// 方向：从 src (picoclaw) 到 dst (homeocto) 的差异
-	dmp := diffmatchpatch.New()
-
-	// 创建 patch：从 src 到 dst 的差异（homeocto 的修改）
-	patches := dmp.PatchMake(string(srcContent), string(dstContent))
-
-	if len(patches) == 0 {
-		// 没有差异，直接使用 homeocto 的内容
-		fmt.Printf("  ✓ No changes needed, using homeocto version: %s\n", filepath.Base(dst))
-		return nil
-	}
-
-	// 将 homeocto 的修改应用到 picoclaw (已替换) 的内容上
-	merged, results := dmp.PatchApply(patches, string(srcContent))
-
-	// 检查 patch 应用结果
-	successCount := 0
-	failCount := 0
-	for _, result := range results {
-		if result {
-			successCount++
-		} else {
-			failCount++
-		}
-	}
-
-	if failCount > 0 {
-		fmt.Printf("  ⚠ %d patches failed, %d succeeded - generating conflict markers\n", failCount, successCount)
-		// 生成带冲突标记的文件，供人工合并
-		// 注意：这里 dst (homeocto) 是权威版本，放在上面
-		merged = generateConflictMarkers(string(dstContent), string(srcContent), patches)
-	}
-
-	// 写入合并后的内容（以 homeocto 为准）
-	if err := os.WriteFile(dst, []byte(merged), 0644); err != nil {
-		return fmt.Errorf("write merged file: %w", err)
-	}
-
-	fmt.Printf("  ✓ Merged successfully (homeocto priority): %s\n", filepath.Base(dst))
-	return nil
-}
-
-// 生成带冲突标记的文件，类似 git merge conflict
-func generateConflictMarkers(dst, src string, patches []diffmatchpatch.Patch) string {
-	var result strings.Builder
-
-	result.WriteString("<<<<<<< HOME OCTO (current version)\n")
-	result.WriteString(dst)
-	if !strings.HasSuffix(dst, "\n") {
-		result.WriteString("\n")
-	}
-	result.WriteString("=======\n")
-	result.WriteString(src)
-	if !strings.HasSuffix(src, "\n") {
-		result.WriteString("\n")
-	}
-	result.WriteString(">>>>>>> PICOCLAW (incoming version with replacements)\n")
-
-	return result.String()
-}
-
-// 读取文件并应用替换规则
-func readFileWithReplace(src string) (string, error) {
-	content, err := os.ReadFile(src)
-	if err != nil {
-		return "", err
-	}
-
-	result := string(content)
-	for _, rule := range replacements {
-		// 检查是否需要跳过替换
-		shouldSkip := false
-		for _, prefix := range skipReplacementPrefixes {
-			if strings.Contains(result, prefix) {
-				shouldSkip = true
-				break
-			}
-		}
-		if !shouldSkip {
-			result = strings.ReplaceAll(result, rule.oldStr, rule.newStr)
-		}
-	}
-	return result, nil
 }
 
 // 拷贝二进制文件（不执行替换）
