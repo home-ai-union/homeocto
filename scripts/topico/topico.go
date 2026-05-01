@@ -17,6 +17,14 @@ type SyncConfig struct {
 	Files []string
 	// 需要同步的目录列表
 	Dirs []string
+	// 路径替换规则（用于处理不同目录名的情况，如 cmd/homeocto -> cmd/picoclaw）
+	PathReplacements []PathReplacement
+}
+
+// 路径替换规则
+type PathReplacement struct {
+	SrcPrefix string // 源路径前缀
+	DstPrefix string // 目标路径前缀
 }
 
 // 默认配置 - 需要同步的文件和目录
@@ -41,6 +49,13 @@ func getDefaultConfig() SyncConfig {
 			"web\\frontend\\src\\routes\\smart-home",
 			"web\\backend\\homeocto",
 			"web\\backend\\api\\homeocto",
+		},
+		// 路径替换规则：cmd\homeocto -> cmd\picoclaw
+		PathReplacements: []PathReplacement{
+			{
+				SrcPrefix: "cmd\\homeocto",
+				DstPrefix: "cmd\\picoclaw",
+			},
 		},
 	}
 }
@@ -96,13 +111,28 @@ func loadConfig(homeoctoRoot, picoclawRoot string) SyncConfig {
 	return config
 }
 
+// 应用路径替换规则
+func applyPathReplacements(path string, replacements []PathReplacement) string {
+	result := path
+	for _, rule := range replacements {
+		// 检查路径是否以源前缀开头
+		if len(result) >= len(rule.SrcPrefix) && result[:len(rule.SrcPrefix)] == rule.SrcPrefix {
+			// 替换前缀
+			result = rule.DstPrefix + result[len(rule.SrcPrefix):]
+		}
+	}
+	return result
+}
+
 // 同步指定的文件
 func syncFiles(config SyncConfig) error {
 	fmt.Println("=== Syncing files ===")
 
 	for _, file := range config.Files {
 		srcPath := filepath.Join(config.SrcDir, file)
-		dstPath := filepath.Join(config.DstDir, file)
+		// 应用路径替换规则
+		dstFile := applyPathReplacements(file, config.PathReplacements)
+		dstPath := filepath.Join(config.DstDir, dstFile)
 
 		if _, err := os.Stat(srcPath); os.IsNotExist(err) {
 			fmt.Printf("⚠ Warning: Source file not found: %s\n", srcPath)
@@ -118,7 +148,7 @@ func syncFiles(config SyncConfig) error {
 		if err := copyFile(srcPath, dstPath); err != nil {
 			return fmt.Errorf("copy file %s: %w", file, err)
 		}
-		fmt.Printf("✓ Copied: %s\n", file)
+		fmt.Printf("✓ Copied: %s -> %s\n", file, dstFile)
 	}
 
 	fmt.Println()
