@@ -25,7 +25,8 @@ import (
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal/skills"
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal/status"
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal/version"
-	"github.com/sipeed/picoclaw/pkg/config"
+	"github.com/home-ai-union/homeocto/pkg/config"
+	picoconfig "github.com/sipeed/picoclaw/pkg/config"
 	"github.com/sipeed/picoclaw/pkg/updater"
 )
 
@@ -54,7 +55,7 @@ func NewPicoclawCommand() *cobra.Command {
 	short := fmt.Sprintf("%s PicoClaw — personal AI assistant", internal.Logo)
 	long := fmt.Sprintf(`%s PicoClaw is a lightweight personal AI assistant.
 
-Version: %s`, internal.Logo, config.FormatVersion())
+Version: %s`, internal.Logo, picoconfig.FormatVersion())
 
 	cmd := &cobra.Command{
 		Use:   "picoclaw",
@@ -119,6 +120,9 @@ const (
 )
 
 func main() {
+	// Sync HomeOcto version info to PicoClaw config package
+	config.SyncVersionToPicoclaw()
+
 	cliui.Init(earlyColorDisabled())
 
 	if earlyColorDisabled() {

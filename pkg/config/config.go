@@ -7,9 +7,39 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+
+	picoconfig "github.com/sipeed/picoclaw/pkg/config"
 )
 
 const defaultConfigFileName = "home.json"
+
+// Build-time variables injected via ldflags during build process.
+// These are set by the Makefile or .goreleaser.yaml using the -X flag:
+//
+//	-X github.com/home-ai-union/homeocto/pkg/config.Version=<version>
+//	-X github.com/home-ai-union/homeocto/pkg/config.GitCommit=<commit>
+//	-X github.com/home-ai-union/homeocto/pkg/config.BuildTime=<timestamp>
+//	-X github.com/home-ai-union/homeocto/pkg/config.GoVersion=<go-version>
+var (
+	// Version is the current version of HomeOcto.
+	Version = "dev"
+	// GitCommit is the Git commit SHA (short).
+	GitCommit string
+	// BuildTime is the build timestamp in RFC3339 format.
+	BuildTime string
+	// GoVersion is the Go version used for building.
+	GoVersion string
+)
+
+// SyncVersionToPicoclaw synchronizes HomeOcto version info to PicoClaw's config package.
+// This should be called during application initialization to ensure version commands
+// display consistent information across both packages.
+func SyncVersionToPicoclaw() {
+	picoconfig.Version = Version
+	picoconfig.GitCommit = GitCommit
+	picoconfig.BuildTime = BuildTime
+	picoconfig.GoVersion = GoVersion
+}
 
 // HomeConfig is the top-level HomeOcto configuration.
 // It is stored in a standalone home.json file and loaded independently
