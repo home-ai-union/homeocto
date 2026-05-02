@@ -28,7 +28,7 @@ var imageFiles = []string{
 	"web/frontend/public/logo_with_text.png",
 	"web/frontend/public/web-app-manifest-192x192.png",
 	"web/frontend/public/web-app-manifest-512x512.png",
-	"web/picoclaw-launcher.png",
+	"web/homeocto-launcher.png",
 }
 
 func main() {

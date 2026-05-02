@@ -5,9 +5,9 @@
 //
 // Usage:
 //
-//	go build -o picoclaw-web ./web/backend/
-//	./picoclaw-web [config.json]
-//	./picoclaw-web -public config.json
+//	go build -o homeocto-web ./web/backend/
+//	./homeocto-web [config.json]
+//	./homeocto-web -public config.json
 
 package main
 
