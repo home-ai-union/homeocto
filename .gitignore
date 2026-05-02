@@ -48,6 +48,10 @@ web/backend/dist/
 # Node modules
 web/frontend/node_modules/
 
+# Package lock files (only keep pnpm-lock.yaml)
+web/frontend/package-lock.json
+web/frontend/yarn.lock
+
 # Environment
 .env
 .env.local
