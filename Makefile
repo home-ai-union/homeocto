@@ -499,7 +499,7 @@ mem:
 
 ## help: Show this help message
 help:
-	@echo "picoclaw Makefile"
+	@echo "homeocto Makefile"
 	@echo ""
 	@echo "Usage:"
 	@echo "  make [target]"

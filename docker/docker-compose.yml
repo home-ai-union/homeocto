@@ -4,7 +4,7 @@ services:
   #   docker compose -f docker/docker-compose.yml run --rm homeocto-agent -m "Hello"
   # ─────────────────────────────────────────────
   homeocto-agent:
-    image: docker.io/YOUR_USERNAME/homeocto:latest
+    image: docker.io/for5millon/homeocto:latest
     container_name: homeocto-agent
     profiles:
       - agent
@@ -22,7 +22,7 @@ services:
   #   docker compose -f docker/docker-compose.yml --profile gateway up
   # ─────────────────────────────────────────────
   homeocto-gateway:
-    image: docker.io/YOUR_USERNAME/homeocto:latest
+    image: docker.io/for5millon/homeocto:latest
     container_name: homeocto-gateway
     restart: unless-stopped
     profiles:
@@ -31,14 +31,14 @@ services:
     #extra_hosts:
     #  - "host.docker.internal:host-gateway"
     volumes:
-      - ./data:/root/.homeocto
+      - ./data:/root/.picoclaw
 
   # ─────────────────────────────────────────────
   # HomeOcto Launcher (Web Console + Gateway)
   #   docker compose -f docker/docker-compose.yml --profile launcher up
   # ─────────────────────────────────────────────
   homeocto-launcher:
-    image: docker.io/YOUR_USERNAME/homeocto:launcher
+    image: docker.io/for5millon/homeocto:launcher
     container_name: homeocto-launcher
     restart: unless-stopped
     profiles:
@@ -52,4 +52,4 @@ services:
       - "18800:18800"
       - "18790:18790"
     volumes:
-      - ./data:/root/.homeocto
+      - ./data:/root/.picoclaw

@@ -1,20 +1,20 @@
 services:
   # ─────────────────────────────────────────────
   # PicoClaw Agent (one-shot query) - Full MCP Support
-  #   docker compose -f docker/docker-compose.full.yml run --rm picoclaw-agent -m "Hello"
+  #   docker compose -f docker/docker-compose.full.yml run --rm homeocto-agent -m "Hello"
   # ─────────────────────────────────────────────
-  picoclaw-agent:
+  homeocto-agent:
     build:
       context: ..
       dockerfile: docker/Dockerfile.full
-    container_name: picoclaw-agent-full
+    container_name: homeocto-agent-full
     profiles:
       - agent
     volumes:
       - ../config/config.json:/root/.picoclaw/config.json:ro
-      - picoclaw-workspace:/root/.picoclaw/workspace
-      - picoclaw-npm-cache:/root/.npm # npm cache for faster MCP server installs
-    entrypoint: ["picoclaw", "agent"]
+      - homeocto-workspace:/root/.picoclaw/workspace
+      - homeocto-npm-cache:/root/.npm # npm cache for faster MCP server installs
+    entrypoint: ["homeocto", "agent"]
     stdin_open: true
     tty: true
 
@@ -26,7 +26,7 @@ services:
     build:
       context: ..
       dockerfile: docker/Dockerfile.full
-    container_name: picoclaw-gateway-full
+    container_name: homeocto-gateway-full
     restart: unless-stopped
     profiles:
       - gateway
@@ -34,11 +34,11 @@ services:
       # Configuration file
       - ../config/config.json:/root/.picoclaw/config.json:ro
       # Persistent workspace (sessions, memory, logs)
-      - picoclaw-workspace:/root/.picoclaw/workspace
+      - homeocto-workspace:/root/.picoclaw/workspace
       # NPM cache for faster MCP server installs
-      - picoclaw-npm-cache:/root/.npm
+      - homeocto-npm-cache:/root/.npm
     command: ["gateway"]
 
 volumes:
-  picoclaw-workspace:
-  picoclaw-npm-cache: # Cache npm packages to speed up MCP server installations
+  homeocto-workspace:
+  homeocto-npm-cache: # Cache npm packages to speed up MCP server installations
