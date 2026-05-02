@@ -64,3 +64,34 @@ jobs:
 
       - name: Run go test
         run: go test -tags goolm,stdjson ./...
+
+  frontend-build:
+    name: Frontend Build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10.33.0
+          run_install: false
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: web/frontend/pnpm-lock.yaml
+
+      - name: Clear TanStack Router cache
+        run: rm -rf web/frontend/node_modules/.tmp web/frontend/.tanstack/tmp
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+        working-directory: web/frontend
+
+      - name: Build frontend
+        run: pnpm build:backend
+        working-directory: web/frontend

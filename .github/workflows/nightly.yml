@@ -60,6 +60,9 @@ jobs:
           cache: pnpm
           cache-dependency-path: web/frontend/pnpm-lock.yaml
 
+      - name: Clear TanStack Router cache
+        run: rm -rf web/frontend/node_modules/.tmp web/frontend/.tanstack/tmp
+
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v4
 
