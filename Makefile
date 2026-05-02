@@ -318,11 +318,11 @@ build-android-bundle: generate
 	@echo "Staging JNI libs..."
 	@rm -rf $(BUILD_DIR)/android-staging
 	@mkdir -p $(BUILD_DIR)/android-staging/arm64-v8a
-	@cp $(BUILD_DIR)/$(BINARY_NAME)-android-arm64 $(BUILD_DIR)/android-staging/arm64-v8a/libpicoclaw.so
-	@cp $(BUILD_DIR)/homeocto-launcher-android-arm64 $(BUILD_DIR)/android-staging/arm64-v8a/libpicoclaw-web.so
-	@cd $(BUILD_DIR)/android-staging && zip -r ../picoclaw-android-universal.zip .
+	@cp $(BUILD_DIR)/$(BINARY_NAME)-android-arm64 $(BUILD_DIR)/android-staging/arm64-v8a/libhomeocto.so
+	@cp $(BUILD_DIR)/homeocto-launcher-android-arm64 $(BUILD_DIR)/android-staging/arm64-v8a/libhomeocto-web.so
+	@cd $(BUILD_DIR)/android-staging && zip -r ../homeocto-android-universal.zip .
 	@rm -rf $(BUILD_DIR)/android-staging
-	@echo "All Android builds complete: $(BUILD_DIR)/picoclaw-android-universal.zip"
+	@echo "All Android builds complete: $(BUILD_DIR)/homeocto-android-universal.zip"
 
 ## build-pi-zero: Build for Raspberry Pi Zero 2 W (32-bit and 64-bit)
 build-pi-zero: build-linux-arm build-linux-arm64

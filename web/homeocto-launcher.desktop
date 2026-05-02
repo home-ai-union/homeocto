@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=HomeOcto Launcher
+Comment=Web-based configuration and management UI for HomeOcto
+Exec=homeocto-launcher
+Icon=homeocto-launcher
+Terminal=true
+Type=Application
+Categories=Utility;Network;
+Keywords=homeocto;ai;agent;bot;
