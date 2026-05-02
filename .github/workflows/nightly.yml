@@ -101,7 +101,7 @@ jobs:
           DOCKERHUB_IMAGE_NAME: ${{ vars.DOCKERHUB_REPOSITORY }}
           GOVERSION: ${{ steps.setup-go.outputs.go-version }}
           GORELEASER_CURRENT_TAG: ${{ steps.version.outputs.version }}
-          INCLUDE_ANDROID_BUNDLE: "true"
+          INCLUDE_ANDROID_BUNDLE: "false"  # Temporarily disabled due to Go 1.25 + anet compatibility issue
           NIGHTLY_BUILD: "true"
           MACOS_SIGN_P12: ${{ secrets.MACOS_SIGN_P12 }}
           MACOS_SIGN_PASSWORD: ${{ secrets.MACOS_SIGN_PASSWORD }}
