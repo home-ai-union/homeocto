@@ -32,25 +32,46 @@ var imageFiles = []string{
 }
 
 func main() {
-	// 检查命令行参数
+	// 解析命令行参数
+	sourceDir := ""
+	targetDir := ""
 	reverse := false
-	if len(os.Args) > 1 && (os.Args[1] == "--reverse" || os.Args[1] == "-r") {
-		reverse = true
+
+	for i := 1; i < len(os.Args); i++ {
+		switch os.Args[i] {
+		case "--reverse", "-r":
+			reverse = true
+		case "-source":
+			if i+1 < len(os.Args) {
+				i++
+				sourceDir = os.Args[i]
+			}
+		case "-target":
+			if i+1 < len(os.Args) {
+				i++
+				targetDir = os.Args[i]
+			}
+		}
+	}
+
+	// 如果没有指定路径，使用默认值
+	if sourceDir == "" {
+		sourceDir = `G:\code\imgbak`
+	}
+	if targetDir == "" {
+		targetDir = `G:\code\homeocto`
+	}
+
+	// 如果是反向模式，交换源和目标
+	if reverse {
+		sourceDir, targetDir = targetDir, sourceDir
+		fmt.Println("[模式] 反向拷贝：从 homeocto -> imgbak")
+	} else {
+		fmt.Println("[模式] 默认拷贝：从 imgbak -> homeocto")
 	}
 
 	// 源目录和目标目录
-	var projectRoot, targetDir string
-	if reverse {
-		// 反向拷贝：从 homeocto 拷贝到 imgbak
-		projectRoot = `G:\code\homeocto`
-		targetDir = `G:\code\imgbak`
-		fmt.Println("[模式] 反向拷贝：从 homeocto -> imgbak")
-	} else {
-		// 默认拷贝：从 imgbak 拷贝回 homeocto
-		projectRoot = `G:\code\imgbak`
-		targetDir = `G:\code\homeocto`
-		fmt.Println("[模式] 默认拷贝：从 imgbak -> homeocto")
-	}
+	projectRoot := sourceDir
 
 	// 创建目标目录
 	if err := os.MkdirAll(targetDir, 0755); err != nil {
