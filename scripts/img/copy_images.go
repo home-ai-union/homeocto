@@ -56,7 +56,7 @@ func main() {
 
 	// 如果没有指定路径，使用默认值
 	if sourceDir == "" {
-		sourceDir = `G:\code\imgbak`
+		sourceDir = `G:\code\homeocto\doc\images`
 	}
 	if targetDir == "" {
 		targetDir = `G:\code\homeocto`
