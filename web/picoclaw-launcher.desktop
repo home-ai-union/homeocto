@@ -1,9 +1,0 @@
-[Desktop Entry]
-Name=HomeOcto Launcher
-Comment=Web-based configuration and management UI for HomeOcto
-Exec=picoclaw-launcher
-Icon=picoclaw-launcher
-Terminal=true
-Type=Application
-Categories=Utility;Network;
-Keywords=picoclaw;ai;agent;bot;
