@@ -125,6 +125,10 @@ build-dev-picoclaw:
 
 # Run all tests
 test:
+	@if [ ! -f "$(BACKEND_DIST)/index.html" ]; then \
+		echo "Embedded frontend not found, building before tests..."; \
+		$(MAKE) build-frontend; \
+	fi
 	cd $(BACKEND_DIR) && ${WEB_GO} test ./...
 	cd $(FRONTEND_DIR) && pnpm lint
 

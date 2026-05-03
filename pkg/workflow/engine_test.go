@@ -25,8 +25,9 @@ func (m *mockTool) Description() string {
 
 func (m *mockTool) Parameters() map[string]interface{} {
 	return map[string]interface{}{
-		"type":       "object",
-		"properties": map[string]interface{}{},
+		"type":                 "object",
+		"properties":           map[string]interface{}{},
+		"additionalProperties": true,
 	}
 }
 
