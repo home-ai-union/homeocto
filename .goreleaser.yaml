@@ -149,7 +149,6 @@ nfpms:
         dst: /usr/share/icons/hicolor/512x512/apps/homeocto-launcher.png
 
 changelog:
-  use: github
   sort: asc
   abbrev: -1
   filters:
