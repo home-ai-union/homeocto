@@ -295,7 +295,7 @@ build-linux-mipsle: generate
 build-android-arm64: generate
 	@echo "Building for android/arm64..."
 	@mkdir -p $(BUILD_DIR)
-	GOOS=android GOARCH=arm64 $(GO) build -tags stdjson -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-android-arm64 ./$(CMD_DIR)
+	GOOS=android GOARCH=arm64 $(GO) build -tags stdjson -ldflags "-checklinkname=0 $(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-android-arm64 ./$(CMD_DIR)
 	@echo "Build complete: $(BUILD_DIR)/$(BINARY_NAME)-android-arm64"
 
 ## build-launcher-android-arm64: Build launcher for Android ARM64
@@ -312,7 +312,7 @@ build-launcher-android-arm64:
 build-android-bundle: generate
 	@echo "Building core for all Android architectures..."
 	@mkdir -p $(BUILD_DIR)
-	GOOS=android GOARCH=arm64 $(GO) build -tags stdjson -ldflags "$(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-android-arm64 ./$(CMD_DIR)
+	GOOS=android GOARCH=arm64 $(GO) build -tags stdjson -ldflags "-checklinkname=0 $(LDFLAGS)" -o $(BUILD_DIR)/$(BINARY_NAME)-android-arm64 ./$(CMD_DIR)
 	@echo "Building launcher for Android arm64..."
 	@$(MAKE) build-launcher-android-arm64
 	@echo "Staging JNI libs..."

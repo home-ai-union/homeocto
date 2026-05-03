@@ -97,12 +97,12 @@ build: build-frontend
 # Build launcher for Android ARM64 (frontend must already be built)
 build-android-arm64: build-frontend
 	@mkdir -p $(BUILD_DIR)
-	GOOS=android GOARCH=arm64 $(GO) build -tags stdjson -ldflags "$(LDFLAGS)" -o "$(OUTPUT_ANDROID_ARM64)" ./$(BACKEND_DIR)/
+	GOOS=android GOARCH=arm64 $(GO) build -tags stdjson -ldflags "-checklinkname=0 $(LDFLAGS)" -o "$(OUTPUT_ANDROID_ARM64)" ./$(BACKEND_DIR)/
 
 # Build launcher for all Android architectures
 build-android-bundle: build-frontend
 	@mkdir -p $(BUILD_DIR)
-	GOOS=android GOARCH=arm64 $(GO) build -tags stdjson -ldflags "$(LDFLAGS)" -o "$(BUILD_DIR)/picoclaw-launcher-android-arm64" ./$(BACKEND_DIR)/
+	GOOS=android GOARCH=arm64 $(GO) build -tags stdjson -ldflags "-checklinkname=0 $(LDFLAGS)" -o "$(BUILD_DIR)/picoclaw-launcher-android-arm64" ./$(BACKEND_DIR)/
 	@echo "All Android launcher builds complete"
 
 build-frontend:
