@@ -74,7 +74,6 @@ dockers_v2:
     platforms:
       - linux/amd64
       - linux/arm64
-      - linux/riscv64
 
   - id: homeocto-launcher
     dockerfile: docker/Dockerfile.goreleaser.launcher
@@ -90,7 +89,6 @@ dockers_v2:
     platforms:
       - linux/amd64
       - linux/arm64
-      - linux/riscv64
 
 notarize:
   macos:
