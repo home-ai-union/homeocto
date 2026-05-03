@@ -195,9 +195,7 @@ func (c *HomeKitClient) extractOperations(deviceID string, accessories []*hap.Ac
 					}
 
 					// Add value constraints if available
-					if char.Format == "uint8" || char.Format == "float" {
-						// Could add min/max/step if needed
-					}
+					// Note: uint8 and float formats could add min/max/step constraints if needed
 
 					operations = append(operations, op)
 				}

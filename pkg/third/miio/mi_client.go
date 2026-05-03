@@ -110,7 +110,9 @@ func (c *MiClient) checkLoadToken() error {
 	}
 
 	// Update cloud with new token
-	c.cloud.LoginWithToken(userID, newToken)
+	if err := c.cloud.LoginWithToken(userID, newToken); err != nil {
+		return fmt.Errorf("failed to login with new token: %w", err)
+	}
 	return nil
 }
 

@@ -232,29 +232,6 @@ func (t *LLMTool) execText(ctx context.Context, llmInst *llm.LLM, params map[str
 	return tools.NewToolResult(fmt.Sprintf("text processing result: %s", result))
 }
 
-// extractImageAsBase64 reads an image file and returns it as a base64 data URL.
-// This is a helper function for image processing.
-func extractImageAsBase64(filePath string) (string, error) {
-	// Read file
-	data, err := os.ReadFile(filePath)
-	if err != nil {
-		return "", fmt.Errorf("failed to read file: %w", err)
-	}
-
-	// Detect MIME type
-	ext := filepath.Ext(filePath)
-	mimeType := mime.TypeByExtension(ext)
-	if mimeType == "" {
-		mimeType = "image/jpeg"
-	}
-
-	// Encode as base64
-	base64Str := base64.StdEncoding.EncodeToString(data)
-	dataURL := fmt.Sprintf("data:%s;base64,%s", mimeType, base64Str)
-
-	return dataURL, nil
-}
-
 // execAnalyzeDeviceOps analyzes device spec using LLM and saves the generated operations.
 // params: {"brand": "xiaomi"|"tuya", "from_id": "device_id"}
 func (t *LLMTool) execAnalyzeDeviceOps(ctx context.Context, llmInst *llm.LLM, params map[string]any) *tools.ToolResult {

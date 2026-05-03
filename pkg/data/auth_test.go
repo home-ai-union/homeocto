@@ -310,9 +310,15 @@ func TestAuthStore_ListBrands(t *testing.T) {
 	}
 
 	// Add brands
-	store.SaveBrand("tuya", "US", "tuya@test.com", "token1", nil)
-	store.SaveBrand("xiaomi", "CN", "xiaomi@test.com", "token2", nil)
-	store.SaveBrand("hue", "EU", "hue@test.com", "token3", nil)
+	if err := store.SaveBrand("tuya", "US", "tuya@test.com", "token1", nil); err != nil {
+		t.Fatalf("SaveBrand(tuya) failed: %v", err)
+	}
+	if err := store.SaveBrand("xiaomi", "CN", "xiaomi@test.com", "token2", nil); err != nil {
+		t.Fatalf("SaveBrand(xiaomi) failed: %v", err)
+	}
+	if err := store.SaveBrand("hue", "EU", "hue@test.com", "token3", nil); err != nil {
+		t.Fatalf("SaveBrand(hue) failed: %v", err)
+	}
 
 	// List again
 	brands, err = store.ListBrands()

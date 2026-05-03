@@ -152,9 +152,7 @@ func extractJSON(s string) string {
 	// Strip markdown code fences if present.
 	if idx := strings.Index(s, "```"); idx >= 0 {
 		s = s[idx+3:]
-		if strings.HasPrefix(s, "json") {
-			s = s[4:]
-		}
+		s = strings.TrimPrefix(s, "json")
 		if end := strings.Index(s, "```"); end >= 0 {
 			s = s[:end]
 		}

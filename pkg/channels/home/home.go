@@ -374,7 +374,9 @@ func (hc *HomeChannel) readLoop(conn *homeConn) {
 
 		var msg homeMessage
 		if err := json.Unmarshal(raw, &msg); err != nil {
-			conn.writeJSON(newError("invalid_message", "failed to parse message"))
+			if writeErr := conn.writeJSON(newError("invalid_message", "failed to parse message")); writeErr != nil {
+				logger.Warnf("Failed to write error message: %v", writeErr)
+			}
 			continue
 		}
 
@@ -412,7 +414,9 @@ func (hc *HomeChannel) pingLoop(conn *homeConn) {
 func (hc *HomeChannel) handleMessage(conn *homeConn, msg homeMessage) {
 	switch msg.Type {
 	case TypePing:
-		conn.writeJSON(newMessage(TypePong, nil))
+		if writeErr := conn.writeJSON(newMessage(TypePong, nil)); writeErr != nil {
+			logger.Warnf("Failed to write pong: %v", writeErr)
+		}
 
 	case TypeMessageSend, TypeMediaSend:
 		hc.executeToolCall(conn, msg)
@@ -427,7 +431,9 @@ func (hc *HomeChannel) handleMessage(conn *homeConn, msg homeMessage) {
 // executeToolCall parses and executes a tool call.
 func (hc *HomeChannel) executeToolCall(conn *homeConn, msg homeMessage) {
 	if hc.toolExecutor == nil {
-		conn.writeJSON(newError("not_initialized", "tool executor not initialized"))
+		if writeErr := conn.writeJSON(newError("not_initialized", "tool executor not initialized")); writeErr != nil {
+			logger.Warnf("Failed to write error: %v", writeErr)
+		}
 		return
 	}
 

@@ -50,9 +50,11 @@ func (h *Handler) registerChannelRoutes(mux *http.ServeMux) {
 //	GET /api/channels/catalog
 func (h *Handler) handleListChannelCatalog(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
+	if err := json.NewEncoder(w).Encode(map[string]any{
 		"channels": channelCatalog,
-	})
+	}); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+	}
 }
 
 // handleGetChannelConfig returns safe channel config plus secret presence metadata.

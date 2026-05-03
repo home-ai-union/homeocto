@@ -15,6 +15,8 @@ import (
 	"github.com/home-ai-union/homeocto/pkg/data"
 	"github.com/sipeed/picoclaw/pkg/logger"
 	"github.com/sipeed/picoclaw/pkg/tools"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
 )
 
 // Engine is the workflow execution engine
@@ -537,8 +539,9 @@ func (e *engine) getVariableValue(path string, variables map[string]interface{})
 
 		field := val.FieldByName(part)
 		if !field.IsValid() {
-			// Try lowercase field name
-			field = val.FieldByName(strings.Title(part))
+			// Try title case field name
+			titleCaser := cases.Title(language.English)
+			field = val.FieldByName(titleCaser.String(part))
 		}
 		if !field.IsValid() {
 			return nil

@@ -113,6 +113,7 @@ func (s *JSONStore) Write(name string, v interface{}) error {
 		if writeErr := fileutil.WriteFileAtomic(backupPath, data, 0o644); writeErr != nil {
 			// Log but continue - better to proceed than fail completely
 			// The atomic write below will still protect data
+			_ = writeErr // explicitly ignore backup write error
 		}
 	}
 

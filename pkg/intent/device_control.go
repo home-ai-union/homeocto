@@ -173,47 +173,6 @@ func (d *DeviceControlIntent) matchWorkflow(ctx context.Context, userInput strin
 	return wf, nil
 }
 
-// scoreWorkflow gives a rough relevance score between 0 and 100.
-// Kept as fallback; not used when provider is available.
-func scoreWorkflow(m *data.WorkflowMeta, userInput string, hints []string) int {
-	score := 0
-	target := m.Name + " " + m.Description
-
-	for _, hint := range hints {
-		if hint == "" {
-			continue
-		}
-		if contains(target, hint) {
-			score += 30
-		}
-	}
-	if contains(target, userInput) {
-		score += 20
-	}
-	return score
-}
-
-// contains reports whether s contains substr (case-insensitive ASCII).
-func contains(s, substr string) bool {
-	return len(s) > 0 && len(substr) > 0 &&
-		indexInsensitive(s, substr) >= 0
-}
-
-func indexInsensitive(s, substr string) int {
-	sLow := strings.ToLower(s)
-	subLow := strings.ToLower(substr)
-	return indexOf(sLow, subLow)
-}
-
-func indexOf(s, substr string) int {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return i
-		}
-	}
-	return -1
-}
-
 // buildExecutionSummary creates a brief human-readable summary of a workflow run.
 func buildExecutionSummary(workflowName string, record *data.ExecutionRecord) string {
 	if record == nil {

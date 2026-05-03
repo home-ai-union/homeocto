@@ -91,10 +91,12 @@ func (h *Handler) handleUpdateConfig(w http.ResponseWriter, r *http.Request) {
 	if errs := validateConfig(&cfg); len(errs) > 0 {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]any{
+		if encErr := json.NewEncoder(w).Encode(map[string]any{
 			"status": "validation_error",
 			"errors": errs,
-		})
+		}); encErr != nil {
+			http.Error(w, encErr.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -107,7 +109,9 @@ func (h *Handler) handleUpdateConfig(w http.ResponseWriter, r *http.Request) {
 	logger.Infof("configuration updated successfully")
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	if encErr := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); encErr != nil {
+		http.Error(w, encErr.Error(), http.StatusInternalServerError)
+	}
 }
 
 func execAllowRemoteOmitted(body []byte) bool {
@@ -192,10 +196,12 @@ func (h *Handler) handlePatchConfig(w http.ResponseWriter, r *http.Request) {
 	if errs := validateConfig(&newCfg); len(errs) > 0 {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]any{
+		if encErr := json.NewEncoder(w).Encode(map[string]any{
 			"status": "validation_error",
 			"errors": errs,
-		})
+		}); encErr != nil {
+			http.Error(w, encErr.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -208,7 +214,9 @@ func (h *Handler) handlePatchConfig(w http.ResponseWriter, r *http.Request) {
 	logger.Infof("configuration updated successfully")
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]string{"status": "ok"})
+	if encErr := json.NewEncoder(w).Encode(map[string]string{"status": "ok"}); encErr != nil {
+		http.Error(w, encErr.Error(), http.StatusInternalServerError)
+	}
 }
 
 // handleTestCommandPatterns tests a command against whitelist and blacklist patterns.
@@ -253,7 +261,9 @@ func (h *Handler) handleTestCommandPatterns(w http.ResponseWriter, r *http.Reque
 			resp.Allowed = true
 			resp.MatchedWhitelist = &pattern
 			w.Header().Set("Content-Type", "application/json")
-			json.NewEncoder(w).Encode(resp)
+			if encErr := json.NewEncoder(w).Encode(resp); encErr != nil {
+				http.Error(w, encErr.Error(), http.StatusInternalServerError)
+			}
 			return
 		}
 	}
@@ -634,6 +644,7 @@ func applyConfigSecretsFromMap(cfg *config.Config, raw map[string]any) {
 	}
 	if github, hasGithub := asMapField(skills, "github"); hasGithub {
 		if token, hasToken := getSecretString(github, "token"); hasToken {
+			//nolint:staticcheck // SA1019: legacy compatibility, will be removed in future
 			cfg.Tools.Skills.Github.Token.Set(token)
 		}
 	}

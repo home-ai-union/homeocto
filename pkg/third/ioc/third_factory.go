@@ -142,7 +142,9 @@ func (f *ThirdFactory) GetCloud(sid string) *xiaomi.Cloud {
 		Cfg map[string]string `yaml:"xiaomi"`
 	}
 
-	hcc.LoadGo2RTCConfig(&Xiaomi)
+	if err := hcc.LoadGo2RTCConfig(&Xiaomi); err != nil {
+		logger.Warnf("Failed to load go2rtc config: %v", err)
+	}
 
 	// Get first key-value pair: userId=key, token=value
 	var userId, token string
@@ -151,7 +153,9 @@ func (f *ThirdFactory) GetCloud(sid string) *xiaomi.Cloud {
 		token = v
 		break
 	}
-	f.cloud.LoginWithToken(userId, token)
+	if err := f.cloud.LoginWithToken(userId, token); err != nil {
+		logger.Warnf("Failed to login with token for user %s: %v", userId, err)
+	}
 	return f.cloud
 }
 

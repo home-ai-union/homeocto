@@ -26,15 +26,15 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/sipeed/picoclaw/pkg/config"
-	"github.com/sipeed/picoclaw/pkg/logger"
-	"github.com/sipeed/picoclaw/pkg/netbind"
-	"github.com/sipeed/picoclaw/pkg/tools"
 	"github.com/home-ai-union/homeocto/web/backend/api"
 	"github.com/home-ai-union/homeocto/web/backend/dashboardauth"
 	"github.com/home-ai-union/homeocto/web/backend/launcherconfig"
 	"github.com/home-ai-union/homeocto/web/backend/middleware"
 	"github.com/home-ai-union/homeocto/web/backend/utils"
+	"github.com/sipeed/picoclaw/pkg/config"
+	"github.com/sipeed/picoclaw/pkg/logger"
+	"github.com/sipeed/picoclaw/pkg/netbind"
+	"github.com/sipeed/picoclaw/pkg/tools"
 )
 
 const (
@@ -686,14 +686,10 @@ func main() {
 		signal.Notify(sigChan, os.Interrupt, syscall.SIGTERM)
 
 		// Main event loop - wait for signals or config changes
-		for {
-			select {
-			case <-sigChan:
-				logger.Info("Shutting down...")
+		<-sigChan
+		logger.Info("Shutting down...")
 
-				return
-			}
-		}
+		return
 	} else {
 		// GUI mode: start system tray
 		runTray()

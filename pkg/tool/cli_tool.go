@@ -256,7 +256,9 @@ func (t *CLITool) execSyncDevices(client third.Client, params map[string]any) *t
 			}
 		}
 		if len(spaceValues) > 0 {
-			t.spaceStore.Save(spaceValues...)
+			if err := t.spaceStore.Save(spaceValues...); err != nil {
+				logger.Warnf("Failed to save space values: %v", err)
+			}
 		}
 	}
 
@@ -319,7 +321,9 @@ func (t *CLITool) execSyncDevices(client third.Client, params map[string]any) *t
 		}
 	}
 	if len(deviceValuesToSave) > 0 {
-		t.deviceStore.Save(deviceValuesToSave...)
+		if err := t.deviceStore.Save(deviceValuesToSave...); err != nil {
+			logger.Warnf("Failed to save device values: %v", err)
+		}
 	}
 
 	for _, d := range devices {
@@ -692,10 +696,8 @@ func (t *CLITool) execListOps() *tools.ToolResult {
 
 	// Build space name set for validation
 	spaceSet := make(map[string]bool)
-	if spaces != nil {
-		for _, s := range spaces {
-			spaceSet[s.Name] = true
-		}
+	for _, s := range spaces {
+		spaceSet[s.Name] = true
 	}
 
 	// Get all device operations

@@ -204,6 +204,7 @@ func (s *workflowStore) Delete(id string) error {
 	if err := s.store.Remove(s.workflowFilePath(id)); err != nil {
 		// Log but don't fail - index is already updated
 		// The file can be cleaned up manually if needed
+		_ = err // explicitly ignore file removal error
 	}
 
 	return nil

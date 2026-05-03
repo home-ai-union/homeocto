@@ -29,7 +29,10 @@ func onboard(encrypt bool) {
 				fmt.Printf("Config already exists at %s\n", configPath)
 				fmt.Print("Overwrite config with defaults? (y/n): ")
 				var response string
-				fmt.Scanln(&response)
+				if _, err := fmt.Scanln(&response); err != nil {
+					fmt.Println("\nAborted.")
+					return
+				}
 				if response != "y" {
 					fmt.Println("Aborted.")
 					return
@@ -124,7 +127,10 @@ func setupSSHKey() error {
 		fmt.Println("    Overwriting will invalidate any credentials previously encrypted with this key.")
 		fmt.Print("    Overwrite? (y/n): ")
 		var response string
-		fmt.Scanln(&response)
+		if _, err := fmt.Scanln(&response); err != nil {
+			fmt.Println("\n    Keeping existing SSH key.")
+			return nil
+		}
 		if response != "y" {
 			fmt.Println("Keeping existing SSH key.")
 			return nil
