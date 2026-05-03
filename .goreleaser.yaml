@@ -150,11 +150,11 @@ nfpms:
 
 changelog:
   sort: asc
-  use: github
   filters:
     exclude:
       - "^docs:"
       - "^test:"
+  format: "{{ .Message }}"
 
 release:
   disable: '{{ isEnvSet "NIGHTLY_BUILD" }}'
