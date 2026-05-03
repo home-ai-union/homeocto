@@ -16,5 +16,8 @@ jobs:
         with:
           go-version-file: go.mod
 
-      - name: Build core binaries
-        run: make build-all
+      - name: Build homeocto
+        run: make build
+
+      - name: Build homeocto-launcher
+        run: make build-launcher
