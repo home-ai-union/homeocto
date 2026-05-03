@@ -18,6 +18,3 @@ jobs:
 
       - name: Build homeocto
         run: make build
-
-      - name: Build homeocto-launcher
-        run: make build-launcher
