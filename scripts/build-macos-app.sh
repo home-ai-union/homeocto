@@ -14,7 +14,7 @@ LAUNCHER_EXECUTABLE="homeocto-launcher-${EXECUTABLE}"
 EXECUTABLE="homeocto-${EXECUTABLE}"
 echo "executable: $EXECUTABLE"
 
-APP_NAME="HomeOcto"
+APP_NAME="HomeOcto Launcher"
 APP_PATH="./build/${APP_NAME}.app"
 APP_CONTENTS="${APP_PATH}/Contents"
 APP_MACOS="${APP_CONTENTS}/MacOS"
@@ -63,9 +63,9 @@ cat > "${APP_CONTENTS}/Info.plist" << 'EOF'
     <key>CFBundleIdentifier</key>
     <string>com.homeocto.launcher</string>
     <key>CFBundleName</key>
-    <string>HomeOcto</string>
+    <string>HomeOcto Launcher</string>
     <key>CFBundleDisplayName</key>
-    <string>HomeOcto</string>
+    <string>HomeOcto Launcher</string>
     <key>CFBundleIconFile</key>
     <string>icon.icns</string>
     <key>CFBundlePackageType</key>
