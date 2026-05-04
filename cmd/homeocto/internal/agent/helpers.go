@@ -95,11 +95,7 @@ func interactiveMode(agentLoop *agent.AgentLoop, sessionKey string) {
 		simpleInteractiveMode(agentLoop, sessionKey)
 		return
 	}
-	defer func() {
-		if err := rl.Close(); err != nil {
-			fmt.Printf("Error closing readline: %v\n", err)
-		}
-	}()
+	defer rl.Close()
 
 	for {
 		line, err := rl.Readline()
@@ -136,7 +132,7 @@ func interactiveMode(agentLoop *agent.AgentLoop, sessionKey string) {
 func simpleInteractiveMode(agentLoop *agent.AgentLoop, sessionKey string) {
 	reader := bufio.NewReader(os.Stdin)
 	for {
-		fmt.Printf("%s You: ", internal.Logo)
+		fmt.Print(fmt.Sprintf("%s You: ", internal.Logo))
 		line, err := reader.ReadString('\n')
 		if err != nil {
 			if err == io.EOF {

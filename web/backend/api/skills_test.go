@@ -630,7 +630,8 @@ func TestHandleSearchSkills(t *testing.T) {
 		t.Fatalf("WriteFile() error = %v", err)
 	}
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	var server *httptest.Server
+	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/v1/search" {
 			http.NotFound(w, r)
 			return
@@ -714,7 +715,8 @@ func TestHandleSearchSkillsUsesGitHubResultVersionInURL(t *testing.T) {
 	workspace := filepath.Join(t.TempDir(), "workspace")
 	cfg.Agents.Defaults.Workspace = workspace
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	var server *httptest.Server
+	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/v3/search/code" {
 			http.NotFound(w, r)
 			return
@@ -829,7 +831,8 @@ func TestHandleSearchSkillsPagination(t *testing.T) {
 	workspace := filepath.Join(t.TempDir(), "workspace")
 	cfg.Agents.Defaults.Workspace = workspace
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	var server *httptest.Server
+	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/v1/search" {
 			http.NotFound(w, r)
 			return
@@ -924,7 +927,8 @@ func TestHandleSearchSkillsClampsRegistryFanout(t *testing.T) {
 	workspace := filepath.Join(t.TempDir(), "workspace")
 	cfg.Agents.Defaults.Workspace = workspace
 
-	server := httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+	var server *httptest.Server
+	server = httptest.NewServer(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		if r.URL.Path != "/api/v1/search" {
 			http.NotFound(w, r)
 			return

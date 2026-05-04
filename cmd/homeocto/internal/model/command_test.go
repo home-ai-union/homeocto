@@ -33,9 +33,7 @@ func captureStdout(fn func()) string {
 	os.Stdout = oldStdout
 
 	var buf bytes.Buffer
-	if _, err := io.Copy(&buf, r); err != nil {
-		return ""
-	}
+	io.Copy(&buf, r)
 	return buf.String()
 }
 
