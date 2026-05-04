@@ -46,10 +46,12 @@ func getDefaultConfig() SyncConfig {
 			"web\\backend\\api\\router.go",
 			"web\\backend\\api\\startup.go",
 			"web\\backend\\api\\startup_test.go",
+			"web\\backend\\dist\\.gitkeep",
 			"web\\homeocto-launcher.desktop",
 			"cmd\\homeocto\\internal\\gateway\\command.go",
+			"cmd\\homeocto\\internal\\gateway\\command_test.go",
 			"cmd\\homeocto\\main.go",
-			"web\\backend\\dist\\.gitkeep",
+			"cmd\\homeocto\\internal\\onboard\\helpers.go",
 		},
 		Dirs: []string{
 			"web\\frontend\\src\\homeocto",

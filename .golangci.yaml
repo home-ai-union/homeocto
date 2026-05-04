@@ -84,7 +84,6 @@ linters:
       disable:
         - fieldalignment
         - shadow  # Variable shadowing is a style issue, not a bug
-        - inline  # Performance suggestion, not required
     lll:
       line-length: 120
       tab-width: 4
