@@ -5,12 +5,24 @@
 [![Go](https://img.shields.io/badge/Go-1.21+-00ADD8.svg)](https://go.dev/)
 [![Platform](https://img.shields.io/badge/Platform-Linux%20%7C%20macOS%20%7C%20Windows%20%7C%20ARM-lightgrey.svg)](https://github.com/home-ai-union/homeocto)
 
-# HomeOcto：懂人话，更懂家。
+# HomeOcto:懂人话,更懂家。
 
-告别繁琐配置，一句话控制全屋设备。
-零门槛：像聊天一样控制家电。
-本地化：断网也能用，隐私不出户。
-全兼容：什么牌子的设备都能连。
+告别繁琐配置,一句话控制全屋设备。
+零门槛:像聊天一样控制家电。
+本地化:断网也能用,隐私不出户。
+全兼容:什么牌子的设备都能连。
+
+## 🐙 为什么叫 HomeOcto?
+
+**HomeOcto** 源自章鱼(Octopus)——海洋中最聪明的生物。
+
+你可以亲切地叫它**"小八"**。就像章鱼一样,HomeOcto 拥有:
+
+- 🧠 **超级大脑**:章鱼拥有分布式神经系统,HomeOcto 同样具备强大的 AI 决策能力,能理解你的意图,自主学习家庭习惯
+- 🐾 **八条灵触手**:章鱼的每条触手都能独立感知与行动,HomeOcto 的每条"触手"连接不同品牌设备,小米、涂鸦、HomeKit 同时掌控,协调如一
+- 🎭 **超强适应力**:章鱼能融入任何环境,HomeOcto 也能适配各种硬件——树莓派、NAS、旧手机,随地安家
+- 💡 **天生的智慧**:章鱼无需训练就能解决复杂问题,HomeOcto 的 AI 大脑让你无需编程,自然对话即可控制全屋
+
 
 ---
 

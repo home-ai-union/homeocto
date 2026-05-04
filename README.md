@@ -14,6 +14,17 @@ Zero threshold: Control home appliances like chatting.
 Localized: Works even offline, privacy stays at home.
 Fully compatible: Connect devices from any brand.
 
+## 🐙 Why HomeOcto?
+
+**HomeOcto** is inspired by the octopus—the most intelligent creature in the ocean.
+
+You can affectionately call it **"Little Eight"**. Just like an octopus, HomeOcto features:
+
+- 🧠 **Super Brain**: Octopuses have a distributed nervous system. Similarly, HomeOcto possesses powerful AI decision-making capabilities, understanding your intentions and autonomously learning family habits
+- 🐾 **Eight Agile Tentacles**: Each tentacle of an octopus can sense and act independently. Each "tentacle" of HomeOcto connects different brand devices—Xiaomi, Tuya, HomeKit—all controlled in perfect harmony
+- 🎭 **Remarkable Adaptability**: Octopuses can blend into any environment. HomeOcto adapts to various hardware—Raspberry Pi, NAS, old phones—making itself at home anywhere
+- 💡 **Innate Intelligence**: Octopuses solve complex problems without training. HomeOcto's AI brain lets you control your entire home through natural conversation, no programming required
+
 ---
 
 ## ✨ Core Features
