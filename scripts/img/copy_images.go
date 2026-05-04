@@ -74,7 +74,7 @@ func main() {
 	projectRoot := sourceDir
 
 	// 创建目标目录
-	if err := os.MkdirAll(targetDir, 0755); err != nil {
+	if err := os.MkdirAll(targetDir, 0o755); err != nil {
 		fmt.Printf("创建目标目录失败: %v\n", err)
 		os.Exit(1)
 	}
@@ -100,7 +100,7 @@ func main() {
 			dstPath = filepath.Join(targetDir, relPath)
 			// 确保目标目录存在
 			dstDir := filepath.Dir(dstPath)
-			if err := os.MkdirAll(dstDir, 0755); err != nil {
+			if err := os.MkdirAll(dstDir, 0o755); err != nil {
 				fmt.Printf("[失败] 创建目录失败: %s\n  错误: %v\n", dstDir, err)
 				failCount++
 				continue

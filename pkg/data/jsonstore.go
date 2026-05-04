@@ -57,7 +57,7 @@ func (s *JSONStore) backupPath(name string) string {
 
 // Read reads JSON data from file. If main file is corrupted, tries backup.
 // Returns ErrFileCorrupted if both files are corrupted.
-func (s *JSONStore) Read(name string, v interface{}) error {
+func (s *JSONStore) Read(name string, v any) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -101,7 +101,7 @@ func (s *JSONStore) Read(name string, v interface{}) error {
 
 // Write writes JSON data to file with backup mechanism.
 // Process: copy current to .bak, then atomic write new data.
-func (s *JSONStore) Write(name string, v interface{}) error {
+func (s *JSONStore) Write(name string, v any) error {
 	s.mutex.Lock()
 	defer s.mutex.Unlock()
 
@@ -113,6 +113,7 @@ func (s *JSONStore) Write(name string, v interface{}) error {
 		if writeErr := fileutil.WriteFileAtomic(backupPath, data, 0o644); writeErr != nil {
 			// Log but continue - better to proceed than fail completely
 			// The atomic write below will still protect data
+			_ = writeErr // explicitly ignore backup write error
 		}
 	}
 

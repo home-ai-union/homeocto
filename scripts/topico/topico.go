@@ -37,11 +37,21 @@ func getDefaultConfig() SyncConfig {
 			"web\\frontend\\src\\routeTree.gen.ts",
 			"web\\frontend\\src\\i18n\\index.ts",
 			"web\\frontend\\src\\homeocto\\api\\device-control-websocket.ts",
+			"web\\frontend\\package.json",
+			"web\\backend\\winres\\winres.json",
+			"web\\backend\\main.go",
+			"web\\backend\\api\\update.go",
 			"web\\backend\\utils\\runtime.go",
 			"web\\backend\\api\\homeocto_api.go",
 			"web\\backend\\api\\router.go",
+			"web\\backend\\api\\startup.go",
+			"web\\backend\\api\\startup_test.go",
+			"web\\backend\\dist\\.gitkeep",
 			"web\\homeocto-launcher.desktop",
 			"cmd\\homeocto\\internal\\gateway\\command.go",
+			"cmd\\homeocto\\internal\\gateway\\command_test.go",
+			"cmd\\homeocto\\main.go",
+			"cmd\\homeocto\\internal\\onboard\\helpers.go",
 		},
 		Dirs: []string{
 			"web\\frontend\\src\\homeocto",
@@ -140,7 +150,7 @@ func syncFiles(config SyncConfig) error {
 		}
 
 		// 创建目标目录
-		if err := os.MkdirAll(filepath.Dir(dstPath), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(dstPath), 0o755); err != nil {
 			return fmt.Errorf("create directory %s: %w", filepath.Dir(dstPath), err)
 		}
 
@@ -234,7 +244,7 @@ func copyDir(src, dst string) error {
 // 拷贝单个文件
 func copyFile(src, dst string) error {
 	// 创建目标目录
-	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
 		return fmt.Errorf("create directory %s: %w", filepath.Dir(dst), err)
 	}
 

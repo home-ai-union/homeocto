@@ -6,12 +6,12 @@ import (
 	"errors"
 	"fmt"
 
-	hcpkg "github.com/home-ai-union/homeocto/pkg"
-	hcconfig "github.com/home-ai-union/homeocto/pkg/config"
-
 	"github.com/sipeed/picoclaw/pkg/agent"
 	picoconfig "github.com/sipeed/picoclaw/pkg/config"
 	"github.com/sipeed/picoclaw/pkg/logger"
+
+	hcpkg "github.com/home-ai-union/homeocto/pkg"
+	hcconfig "github.com/home-ai-union/homeocto/pkg/config"
 )
 
 // homeoctoContext stores HomeOcto-related state in services.extData
@@ -160,5 +160,4 @@ func reinitHomeOcto(al *agent.AgentLoop, s *services, newCfg *picoconfig.Config)
 			"tool_name": toolName,
 		})
 	}
-
 }

@@ -4,14 +4,14 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/spf13/cobra"
-
-	"github.com/home-ai-union/homeocto/cmd/homeocto/internal"
-	"github.com/home-ai-union/homeocto/pkg/gateway"
 	"github.com/sipeed/picoclaw/pkg/config"
 	"github.com/sipeed/picoclaw/pkg/logger"
 	"github.com/sipeed/picoclaw/pkg/netbind"
 	"github.com/sipeed/picoclaw/pkg/utils"
+	"github.com/spf13/cobra"
+
+	"github.com/home-ai-union/homeocto/cmd/homeocto/internal"
+	"github.com/home-ai-union/homeocto/pkg/gateway"
 )
 
 func resolveGatewayHostOverride(explicit bool, host string) (string, error) {

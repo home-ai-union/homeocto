@@ -58,7 +58,11 @@ func (hc *HomeOcto) ExecuteTool(ctx context.Context, toolName, commandJSON strin
 // HandleToolCall checks if the message is a tool command (format: "tool:name" + JSON params)
 // and executes it via the specified tool directly, bypassing the LLM.
 // Returns (response, handled) where handled=true means the command was processed.
-func (hc *HomeOcto) HandleToolCall(ctx context.Context, channel, chatID, content string, toolRegistry *tools.ToolRegistry) (string, bool) {
+func (hc *HomeOcto) HandleToolCall(
+	ctx context.Context,
+	channel, chatID, content string,
+	toolRegistry *tools.ToolRegistry,
+) (string, bool) {
 	if hc == nil || toolRegistry == nil {
 		return "", false
 	}
@@ -150,7 +154,7 @@ func (hc *HomeOcto) ParseToolCommand(content string) (string, string, bool) {
 	}
 
 	// Validate JSON format
-	var cmd map[string]interface{}
+	var cmd map[string]any
 	if err := json.Unmarshal([]byte(commandJSON), &cmd); err != nil {
 		return "", "", false
 	}

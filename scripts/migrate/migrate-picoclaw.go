@@ -46,7 +46,10 @@ var skipReplacementPrefixes = []string{
 func main() {
 	if len(os.Args) != 3 {
 		fmt.Fprintf(os.Stderr, "Usage: go run scripts/migrate/migrate-picoclaw.go <picoclaw-root> <homeocto-root>\n")
-		fmt.Fprintf(os.Stderr, "Example: go run scripts/migrate/migrate-picoclaw.go G:\\code\\picoclaw G:\\code\\homeocto\n")
+		fmt.Fprintf(
+			os.Stderr,
+			"Example: go run scripts/migrate/migrate-picoclaw.go G:\\code\\picoclaw G:\\code\\homeocto\n",
+		)
 		os.Exit(1)
 	}
 
@@ -255,7 +258,7 @@ func copyWebBackendTextFileWithReplace(src, dst string) error {
 	defer srcFile.Close()
 
 	// 创建目标目录
-	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
 		return fmt.Errorf("create directory %s: %w", filepath.Dir(dst), err)
 	}
 
@@ -422,7 +425,7 @@ func copyCmdTextFileWithReplace(src, dst string) error {
 	defer srcFile.Close()
 
 	// 创建目标目录
-	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
 		return fmt.Errorf("create directory %s: %w", filepath.Dir(dst), err)
 	}
 
@@ -563,7 +566,7 @@ func isTextFile(path string) bool {
 // 拷贝二进制文件（不执行替换）
 func copyBinaryFile(src, dst string) error {
 	// 创建目标目录
-	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
 		return fmt.Errorf("create directory %s: %w", filepath.Dir(dst), err)
 	}
 

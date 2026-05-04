@@ -1,4 +1,4 @@
-﻿package homeocto
+package homeocto
 
 import (
 	"bufio"
@@ -15,10 +15,11 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/sipeed/picoclaw/pkg/logger"
+
 	hcconfig "github.com/home-ai-union/homeocto/pkg/config"
 	"github.com/home-ai-union/homeocto/pkg/utils"
 	backendutils "github.com/home-ai-union/homeocto/web/backend/utils"
-	"github.com/sipeed/picoclaw/pkg/logger"
 )
 
 // Go2RTCManager manages the go2rtc subprocess lifecycle.
@@ -90,7 +91,7 @@ func (m *Go2RTCManager) startReady() (bool, string, error) {
 	if _, err := os.Stat(configPath); os.IsNotExist(err) {
 		// Create default config file so go2rtc can start
 		defaultConfig := "api:\n  listen: \":1984\"\n"
-		if err := os.WriteFile(configPath, []byte(defaultConfig), 0644); err != nil {
+		if err := os.WriteFile(configPath, []byte(defaultConfig), 0o644); err != nil {
 			return false, "", fmt.Errorf("failed to create go2rtc config file: %w", err)
 		}
 		logger.InfoC("go2rtc", fmt.Sprintf("Created default config file: %s", configPath))

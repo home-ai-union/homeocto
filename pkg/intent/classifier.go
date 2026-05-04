@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	homeconfig "github.com/home-ai-union/homeocto/pkg/config"
 	"github.com/sipeed/picoclaw/pkg/providers"
+
+	homecfg "github.com/home-ai-union/homeocto/pkg/config"
 )
 
 // intentClassifyPrompt is the system prompt used for intent classification.
@@ -72,7 +73,7 @@ const intentClassifyPrompt = `你是一个智能家居助手的意图识别器�
 // llmClassifier implements IntentClassifier by calling a small language model.
 type llmClassifier struct {
 	provider  providers.LLMProvider
-	cfg       *homeconfig.HomeConfig
+	cfg       *homecfg.HomeConfig
 	modelName string // resolved model identifier sent to the provider
 }
 
@@ -81,7 +82,7 @@ type llmClassifier struct {
 // modelName is the model identifier passed to provider.Chat().
 func NewLLMClassifier(
 	provider providers.LLMProvider,
-	cfg *homeconfig.HomeConfig,
+	cfg *homecfg.HomeConfig,
 	modelName string,
 ) IntentClassifier {
 	return &llmClassifier{

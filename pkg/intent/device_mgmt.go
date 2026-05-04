@@ -1,4 +1,4 @@
-﻿package intent
+package intent
 
 import (
 	"context"
@@ -94,11 +94,11 @@ func (d *DeviceMgmtIntent) handleAdd(ictx IntentContext) IntentResponse {
 		SpaceName: spaceName,
 	}
 	if err := d.deviceStore.Save(device); err != nil {
-		return errResponse(fmt.Sprintf("����豸��%s��ʧ�ܣ�%s", name, err.Error()), err)
+		return errResponse(fmt.Sprintf("添加设备「%s」失败：%s", name, err.Error()), err)
 	}
-	msg := fmt.Sprintf("������豸��%s����", name)
+	msg := fmt.Sprintf("已添加设备「%s」。", name)
 	if entityString(ictx.Result.Entities, "space_name") != "" && spaceName == "" {
-		msg += fmt.Sprintf("��δ�ҵ��ռ䡸%s�����豸δ���䷿�䣩", entityString(ictx.Result.Entities, "space_name"))
+		msg += fmt.Sprintf("（未找到空间「%s」，设备未分配房间）", entityString(ictx.Result.Entities, "space_name"))
 	}
 	return IntentResponse{Handled: true, Response: msg}
 }
@@ -117,17 +117,17 @@ func (d *DeviceMgmtIntent) handleRemove(ictx IntentContext) IntentResponse {
 
 	devices, err := d.deviceStore.GetAll()
 	if err != nil {
-		return errResponse(fmt.Sprintf("��ѯ�豸ʧ�ܣ�%s", err.Error()), err)
+		return errResponse(fmt.Sprintf("查询设备失败：%s", err.Error()), err)
 	}
 	for _, dev := range devices {
 		if strings.EqualFold(dev.Name, name) {
 			if err := d.deviceStore.Delete(dev.FromID, dev.From); err != nil {
-				return errResponse(fmt.Sprintf("ɾ���豸��%s��ʧ�ܣ�%s", name, err.Error()), err)
+				return errResponse(fmt.Sprintf("删除设备「%s」失败：%s", name, err.Error()), err)
 			}
-			return IntentResponse{Handled: true, Response: fmt.Sprintf("��ɾ���豸��%s����", name)}
+			return IntentResponse{Handled: true, Response: fmt.Sprintf("已删除设备「%s」。", name)}
 		}
 	}
-	return IntentResponse{Handled: true, Response: fmt.Sprintf("δ�ҵ��豸��%s����", name)}
+	return IntentResponse{Handled: true, Response: fmt.Sprintf("未找到设备「%s」。", name)}
 }
 
 func (d *DeviceMgmtIntent) handleRename(ictx IntentContext) IntentResponse {
@@ -139,18 +139,18 @@ func (d *DeviceMgmtIntent) handleRename(ictx IntentContext) IntentResponse {
 
 	devices, err := d.deviceStore.GetAll()
 	if err != nil {
-		return errResponse(fmt.Sprintf("��ѯ�豸ʧ�ܣ�%s", err.Error()), err)
+		return errResponse(fmt.Sprintf("查询设备失败：%s", err.Error()), err)
 	}
 	for _, dev := range devices {
 		if strings.EqualFold(dev.Name, oldName) {
 			dev.Name = newName
 			if err := d.deviceStore.Save(dev); err != nil {
-				return errResponse(fmt.Sprintf("�������豸ʧ�ܣ�%s", err.Error()), err)
+				return errResponse(fmt.Sprintf("重命名设备失败：%s", err.Error()), err)
 			}
-			return IntentResponse{Handled: true, Response: fmt.Sprintf("�ѽ��豸��%s��������Ϊ��%s����", oldName, newName)}
+			return IntentResponse{Handled: true, Response: fmt.Sprintf("已将设备「%s」重命名为「%s」。", oldName, newName)}
 		}
 	}
-	return IntentResponse{Handled: true, Response: fmt.Sprintf("δ�ҵ��豸��%s����", oldName)}
+	return IntentResponse{Handled: true, Response: fmt.Sprintf("未找到设备「%s」。", oldName)}
 }
 
 func (d *DeviceMgmtIntent) handleMove(ictx IntentContext) IntentResponse {
@@ -165,7 +165,7 @@ func (d *DeviceMgmtIntent) handleMove(ictx IntentContext) IntentResponse {
 	if d.spaceStore != nil {
 		spaces, err := d.spaceStore.GetAll()
 		if err != nil {
-			return errResponse(fmt.Sprintf("��ѯ�ռ�ʧ�ܣ�%s", err.Error()), err)
+			return errResponse(fmt.Sprintf("查询空间失败：%s", err.Error()), err)
 		}
 		for _, sp := range spaces {
 			if strings.EqualFold(sp.Name, spaceName) {
@@ -174,24 +174,24 @@ func (d *DeviceMgmtIntent) handleMove(ictx IntentContext) IntentResponse {
 			}
 		}
 		if resolvedSpaceName == "" {
-			return IntentResponse{Handled: true, Response: fmt.Sprintf("δ�ҵ��ռ䡸%s����", spaceName)}
+			return IntentResponse{Handled: true, Response: fmt.Sprintf("未找到空间「%s」。", spaceName)}
 		}
 	}
 
 	devices, err := d.deviceStore.GetAll()
 	if err != nil {
-		return errResponse(fmt.Sprintf("��ѯ�豸ʧ�ܣ�%s", err.Error()), err)
+		return errResponse(fmt.Sprintf("查询设备失败：%s", err.Error()), err)
 	}
 	for _, dev := range devices {
 		if strings.EqualFold(dev.Name, deviceName) {
 			dev.SpaceName = resolvedSpaceName
 			if err := d.deviceStore.Save(dev); err != nil {
-				return errResponse(fmt.Sprintf("�ƶ��豸ʧ�ܣ�%s", err.Error()), err)
+				return errResponse(fmt.Sprintf("移动设备失败：%s", err.Error()), err)
 			}
-			return IntentResponse{Handled: true, Response: fmt.Sprintf("�ѽ��豸��%s���ƶ�����%s����", deviceName, spaceName)}
+			return IntentResponse{Handled: true, Response: fmt.Sprintf("已将设备「%s」移动到「%s」。", deviceName, spaceName)}
 		}
 	}
-	return IntentResponse{Handled: true, Response: fmt.Sprintf("δ�ҵ��豸��%s����", deviceName)}
+	return IntentResponse{Handled: true, Response: fmt.Sprintf("未找到设备「%s」。", deviceName)}
 }
 
 func (d *DeviceMgmtIntent) handleQueryStatus(ictx IntentContext) IntentResponse {
@@ -201,7 +201,7 @@ func (d *DeviceMgmtIntent) handleQueryStatus(ictx IntentContext) IntentResponse 
 	if name != "" {
 		devices, err := d.deviceStore.GetAll()
 		if err != nil {
-			return errResponse(fmt.Sprintf("��ѯ�豸ʧ�ܣ�%s", err.Error()), err)
+			return errResponse(fmt.Sprintf("查询设备失败：%s", err.Error()), err)
 		}
 		for _, dev := range devices {
 			if strings.EqualFold(dev.Name, name) {
@@ -211,33 +211,33 @@ func (d *DeviceMgmtIntent) handleQueryStatus(ictx IntentContext) IntentResponse 
 				}
 			}
 		}
-		return IntentResponse{Handled: true, Response: fmt.Sprintf("δ�ҵ��豸��%s����", name)}
+		return IntentResponse{Handled: true, Response: fmt.Sprintf("未找到设备「%s」。", name)}
 	}
 
 	// Query all devices.
 	devices, err := d.deviceStore.GetAll()
 	if err != nil {
-		return errResponse(fmt.Sprintf("��ѯ�豸�б�ʧ�ܣ�%s", err.Error()), err)
+		return errResponse(fmt.Sprintf("查询设备列表失败：%s", err.Error()), err)
 	}
 	if len(devices) == 0 {
-		return IntentResponse{Handled: true, Response: "��ǰû���κ��豸��"}
+		return IntentResponse{Handled: true, Response: "当前没有任何设备。"}
 	}
 	lines := make([]string, 0, len(devices))
 	for _, dev := range devices {
-		lines = append(lines, fmt.Sprintf("��%s����%s��", dev.Name, dev.From))
+		lines = append(lines, fmt.Sprintf("「%s」（%s）", dev.Name, dev.From))
 	}
 	return IntentResponse{
 		Handled:  true,
-		Response: fmt.Sprintf("���� %d ̨�豸��%s��", len(devices), strings.Join(lines, "��")),
+		Response: fmt.Sprintf("共有 %d 台设备：%s。", len(devices), strings.Join(lines, "、")),
 	}
 }
 
 func formatDeviceStatus(dev data.Device) string {
 	sb := &strings.Builder{}
-	fmt.Fprintf(sb, "�豸��%s��", dev.Name)
+	fmt.Fprintf(sb, "设备「%s」", dev.Name)
 	if dev.From != "" {
-		fmt.Fprintf(sb, "��%s��", dev.From)
+		fmt.Fprintf(sb, "（%s）", dev.From)
 	}
-	sb.WriteString("��״̬δ֪��")
+	sb.WriteString("，状态未知。")
 	return sb.String()
 }

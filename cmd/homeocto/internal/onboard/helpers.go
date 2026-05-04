@@ -6,12 +6,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/sipeed/picoclaw/pkg/config"
+	"github.com/sipeed/picoclaw/pkg/credential"
 	"golang.org/x/term"
 
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal"
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal/cliui"
-	"github.com/sipeed/picoclaw/pkg/config"
-	"github.com/sipeed/picoclaw/pkg/credential"
 )
 
 func onboard(encrypt bool) {
@@ -172,10 +172,16 @@ func copyEmbeddedToTarget(targetDir string) error {
 		if err != nil {
 			return fmt.Errorf("Failed to get relative path for %s: %v\n", path, err)
 		}
-		if new_path == "AGENTS.md" || new_path == "IDENTITY.md" {
+
+		// Skip legacy IDENTITY.md file
+		if new_path == "IDENTITY.md" {
 			return nil
 		}
 
+		// Convert AGENTS.md to AGENT.md (singular)
+		if new_path == "AGENTS.md" {
+			new_path = "AGENT.md"
+		}
 		// Build target file path
 		targetPath := filepath.Join(targetDir, new_path)
 

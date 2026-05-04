@@ -1,14 +1,17 @@
-﻿// Package homekit provides HomeKit device management for HomeClaw.
+// Package homekit provides HomeKit device management for HomeClaw.
 package homekit
 
 import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"net"
 	"net/url"
 	"path/filepath"
+	"strconv"
 
 	"github.com/AlexxIT/go2rtc/pkg/hap"
+
 	"github.com/home-ai-union/homeocto/pkg/data"
 	"github.com/home-ai-union/homeocto/pkg/third"
 	"github.com/home-ai-union/homeocto/pkg/utils"
@@ -195,9 +198,7 @@ func (c *HomeKitClient) extractOperations(deviceID string, accessories []*hap.Ac
 					}
 
 					// Add value constraints if available
-					if char.Format == "uint8" || char.Format == "float" {
-						// Could add min/max/step if needed
-					}
+					// Note: uint8 and float formats could add min/max/step constraints if needed
 
 					operations = append(operations, op)
 				}
@@ -487,7 +488,8 @@ func (c *HomeKitClient) GetDeviceStore() data.DeviceStore {
 // PairDevice performs HomeKit pairing with a device, saves it to DeviceStore, and returns the device
 func (c *HomeKitClient) PairDevice(ip string, port uint16, deviceID string, pin string) (*data.Device, error) {
 	// Construct the HomeKit URL
-	rawURL := fmt.Sprintf("homekit://%s:%d?device_id=%s&pin=%s", ip, port, deviceID, pin)
+	hostPort := net.JoinHostPort(ip, strconv.FormatUint(uint64(port), 10))
+	rawURL := fmt.Sprintf("homekit://%s?device_id=%s&pin=%s", hostPort, deviceID, pin)
 
 	// Perform pairing using HAP protocol
 	hapClient, err := hap.Pair(rawURL)
@@ -566,7 +568,9 @@ func (c *HomeKitClient) UnpairDevice(deviceID string) error {
 	}
 
 	if targetDevice == nil {
-		return fmt.Errorf("device_not_in_store: This device was not paired through HomeClaw. Please remove the pairing from the place where you originally added it")
+		return fmt.Errorf(
+			"device_not_in_store: This device was not paired through HomeClaw. Please remove the pairing from the place where you originally added it",
+		)
 	}
 
 	// Parse the token to extract pairing credentials

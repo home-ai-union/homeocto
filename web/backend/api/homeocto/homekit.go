@@ -1,4 +1,4 @@
-﻿package homeocto
+package homeocto
 
 import (
 	"encoding/json"
@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/AlexxIT/go2rtc/pkg/mdns"
+
 	"github.com/home-ai-union/homeocto/pkg/data"
 	"github.com/home-ai-union/homeocto/pkg/third/homekit"
 )
@@ -156,7 +157,6 @@ func (m *HomeKitManager) discoverDevices() ([]HomeKitDeviceSource, error) {
 		}
 		return false // Continue discovery
 	})
-
 	if err != nil {
 		return nil, fmt.Errorf("mDNS discovery failed: %w", err)
 	}

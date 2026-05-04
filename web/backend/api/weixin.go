@@ -11,11 +11,10 @@ import (
 	"strings"
 	"time"
 
-	"rsc.io/qr"
-
 	"github.com/sipeed/picoclaw/pkg/channels/weixin"
 	"github.com/sipeed/picoclaw/pkg/config"
 	"github.com/sipeed/picoclaw/pkg/logger"
+	"rsc.io/qr"
 )
 
 const (

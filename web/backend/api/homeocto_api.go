@@ -6,8 +6,9 @@ import (
 	"strconv"
 	"strings"
 
-	homeconfig "github.com/home-ai-union/homeocto/pkg/config"
 	"github.com/sipeed/picoclaw/pkg/config"
+
+	homeconfig "github.com/home-ai-union/homeocto/pkg/config"
 )
 
 // registerHomeOctoRoutes binds HomeOcto management endpoints to the ServeMux.

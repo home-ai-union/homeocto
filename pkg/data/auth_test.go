@@ -176,6 +176,7 @@ func TestAuthStore_GetDecryptedBrand_NotFound(t *testing.T) {
 	store, cleanup := setupAuthTest(t)
 	defer cleanup()
 
+	//nolint:dogsled // Test only needs error value
 	_, _, _, _, err := store.GetDecryptedBrand("nonexistent")
 	if err == nil {
 		t.Error("Expected error for nonexistent brand")
@@ -241,6 +242,7 @@ func TestAuthStore_EncryptionSecurity(t *testing.T) {
 	}
 
 	// Verify decryption returns the original
+	//nolint:dogsled // Test only needs decryptedToken and err
 	_, _, decryptedToken, _, err := store.GetDecryptedBrand("tuya")
 	if err != nil {
 		t.Fatalf("GetDecryptedBrand failed: %v", err)
@@ -310,9 +312,15 @@ func TestAuthStore_ListBrands(t *testing.T) {
 	}
 
 	// Add brands
-	store.SaveBrand("tuya", "US", "tuya@test.com", "token1", nil)
-	store.SaveBrand("xiaomi", "CN", "xiaomi@test.com", "token2", nil)
-	store.SaveBrand("hue", "EU", "hue@test.com", "token3", nil)
+	if err := store.SaveBrand("tuya", "US", "tuya@test.com", "token1", nil); err != nil {
+		t.Fatalf("SaveBrand(tuya) failed: %v", err)
+	}
+	if err := store.SaveBrand("xiaomi", "CN", "xiaomi@test.com", "token2", nil); err != nil {
+		t.Fatalf("SaveBrand(xiaomi) failed: %v", err)
+	}
+	if err := store.SaveBrand("hue", "EU", "hue@test.com", "token3", nil); err != nil {
+		t.Fatalf("SaveBrand(hue) failed: %v", err)
+	}
 
 	// List again
 	brands, err = store.ListBrands()

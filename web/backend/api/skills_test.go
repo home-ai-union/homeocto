@@ -15,9 +15,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/stretchr/testify/assert"
-
 	"github.com/sipeed/picoclaw/pkg/config"
+	"github.com/stretchr/testify/assert"
 )
 
 func setClawHubBaseURL(cfg *config.Config, baseURL string) {

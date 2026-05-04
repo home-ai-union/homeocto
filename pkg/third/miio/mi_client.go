@@ -1,4 +1,4 @@
-﻿// Package miio provides a Xiaomi MIoT cloud client implementation.
+// Package miio provides a Xiaomi MIoT cloud client implementation.
 package miio
 
 import (
@@ -11,10 +11,11 @@ import (
 	"strings"
 
 	"github.com/AlexxIT/go2rtc/pkg/xiaomi"
+	"github.com/sipeed/picoclaw/pkg/logger"
+
 	"github.com/home-ai-union/homeocto/pkg/config"
 	"github.com/home-ai-union/homeocto/pkg/data"
 	"github.com/home-ai-union/homeocto/pkg/third"
-	"github.com/sipeed/picoclaw/pkg/logger"
 )
 
 const (
@@ -106,11 +107,13 @@ func (c *MiClient) checkLoadToken() error {
 		if localIP == "" {
 			localIP = "<device_ip>"
 		}
-		return fmt.Errorf("Must Confirm!: xiaomi token is empty, please login first��", localIP)
+		return fmt.Errorf("Must Confirm!: xiaomi token is empty, please login first! IP: %s", localIP)
 	}
 
 	// Update cloud with new token
-	c.cloud.LoginWithToken(userID, newToken)
+	if err := c.cloud.LoginWithToken(userID, newToken); err != nil {
+		return fmt.Errorf("failed to login with new token: %w", err)
+	}
 	return nil
 }
 
@@ -209,7 +212,7 @@ func getAuthErrorMsg() string {
 	if localIP == "" {
 		localIP = "<device_ip>"
 	}
-	return fmt.Sprintf("Must Confirm!: xiaomi token is empty or invalid, please login first��", localIP)
+	return fmt.Sprintf("Must Confirm!: xiaomi token is empty or invalid, please login first! IP: %s", localIP)
 }
 
 // request performs an authenticated request to the Xiaomi cloud API.
@@ -235,9 +238,9 @@ func (c *MiClient) Brand() string {
 	return BrandXiaomi
 }
 
-// ����������������������������������������������������������������������������������������������������������������������������������������������������������������
+// ────────────────────────────────────────────────────────────────────────────────
 // Query methods
-// ����������������������������������������������������������������������������������������������������������������������������������������������������������������
+// ────────────────────────────────────────────────────────────────────────────────
 
 // GetHomes returns all homes visible to the authenticated user.
 func (c *MiClient) GetHomes() ([]*third.HomeInfo, error) {
@@ -269,7 +272,6 @@ func (c *MiClient) GetHomes() ([]*third.HomeInfo, error) {
 			ID:   h.HomeID,
 			Name: h.HomeName,
 		})
-
 	}
 
 	return homes, nil
@@ -440,7 +442,12 @@ func (c *MiClient) GetSpec(deviceID string) (*third.SpecInfo, error) {
 
 	specJSON := string(specData)
 
-	logger.Infof("[DeviceOps] [xiaomi] Successfully fetched spec for device %s (model: %s, URN: %s)", deviceID, info.Model, info.SpecType)
+	logger.Infof(
+		"[DeviceOps] [xiaomi] Successfully fetched spec for device %s (model: %s, URN: %s)",
+		deviceID,
+		info.Model,
+		info.SpecType,
+	)
 
 	return &third.SpecInfo{
 		DeviceID: deviceID,
@@ -535,7 +542,11 @@ func (c *MiClient) GetDeviceInfo(deviceID string) (*DeviceInfo, error) {
 			if c.deviceStore != nil {
 				for i := range resp.List {
 					if err := c.deviceStore.Save(&resp.List[i]); err != nil {
-						logger.Warnf("[DeviceOps] [xiaomi] Failed to save device %s to store: %v", resp.List[i].DID, err)
+						logger.Warnf(
+							"[DeviceOps] [xiaomi] Failed to save device %s to store: %v",
+							resp.List[i].DID,
+							err,
+						)
 					}
 				}
 			}
@@ -560,9 +571,9 @@ func (c *MiClient) GetDeviceInfo(deviceID string) (*DeviceInfo, error) {
 	return nil, fmt.Errorf("device %s not found", deviceID)
 }
 
-// ����������������������������������������������������������������������������������������������������������������������������������������������������������������
+// ────────────────────────────────────────────────────────────────────────────────
 // Control methods
-// ����������������������������������������������������������������������������������������������������������������������������������������������������������������
+// ────────────────────────────────────────────────────────────────────────────────
 
 // Execute sends an action command to a device.
 //
@@ -759,9 +770,9 @@ func (c *MiClient) SetProps(params map[string]any) (any, error) {
 	return resp, nil
 }
 
-// ����������������������������������������������������������������������������������������������������������������������������������������������������������������
+// ────────────────────────────────────────────────────────────────────────────────
 // Event lifecycle methods
-// ����������������������������������������������������������������������������������������������������������������������������������������������������������������
+// ────────────────────────────────────────────────────────────────────────────────
 
 // EnableEvent starts event subscription for the given device.
 // Note: Xiaomi cloud does not support real-time push events via HTTP.
@@ -777,9 +788,9 @@ func (c *MiClient) DisableEvent(params map[string]any) error {
 	return errors.New("disable_event: not implemented for Xiaomi cloud")
 }
 
-// ����������������������������������������������������������������������������������������������������������������������������������������������������������������
+// ────────────────────────────────────────────────────────────────────────────────
 // Helper functions
-// ����������������������������������������������������������������������������������������������������������������������������������������������������������������
+// ────────────────────────────────────────────────────────────────────────────────
 
 // getIntParam extracts an integer parameter from the map.
 // It handles both int and float64 (JSON number) types.

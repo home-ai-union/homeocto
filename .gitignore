@@ -43,7 +43,8 @@ Thumbs.db
 
 # Build output
 build/
-web/backend/dist/
+web/backend/dist/*
+!web/backend/dist/.gitkeep
 
 # Node modules
 web/frontend/node_modules/

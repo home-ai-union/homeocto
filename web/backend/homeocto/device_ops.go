@@ -1,12 +1,13 @@
-﻿package homeocto
+package homeocto
 
 import (
 	"encoding/json"
 	"net/http"
 	"sync"
 
-	"github.com/home-ai-union/homeocto/pkg/data"
 	"github.com/sipeed/picoclaw/pkg/logger"
+
+	"github.com/home-ai-union/homeocto/pkg/data"
 )
 
 // DeviceOpsManager handles device operations API
@@ -84,9 +85,11 @@ func (m *DeviceOpsManager) handleExecuteDeviceOp(w http.ResponseWriter, r *http.
 	if err := m.Initialize(m.workspacePath); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]any{
+		if encErr := json.NewEncoder(w).Encode(map[string]any{
 			"error": "Failed to initialize device ops service",
-		})
+		}); encErr != nil {
+			http.Error(w, encErr.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -94,18 +97,22 @@ func (m *DeviceOpsManager) handleExecuteDeviceOp(w http.ResponseWriter, r *http.
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]any{
+		if encErr := json.NewEncoder(w).Encode(map[string]any{
 			"error": "Invalid request body",
-		})
+		}); encErr != nil {
+			http.Error(w, encErr.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
 	if req.FromID == "" || req.From == "" || req.OpsName == "" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]any{
+		if encErr := json.NewEncoder(w).Encode(map[string]any{
 			"error": "Missing required parameters: from_id, from, ops_name",
-		})
+		}); encErr != nil {
+			http.Error(w, encErr.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -127,14 +134,16 @@ func (m *DeviceOpsManager) handleExecuteDeviceOp(w http.ResponseWriter, r *http.
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]any{
+		if encErr := json.NewEncoder(w).Encode(map[string]any{
 			"error": "Failed to marshal command",
-		})
+		}); encErr != nil {
+			http.Error(w, encErr.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
+	if encErr := json.NewEncoder(w).Encode(map[string]any{
 		"success":      true,
 		"from_id":      req.FromID,
 		"from":         req.From,
@@ -142,7 +151,9 @@ func (m *DeviceOpsManager) handleExecuteDeviceOp(w http.ResponseWriter, r *http.
 		"cli_method":   "exe",
 		"command_json": string(commandJSON),
 		"message":      "Command ready to be sent to gateway via Pico channel",
-	})
+	}); encErr != nil {
+		http.Error(w, encErr.Error(), http.StatusInternalServerError)
+	}
 }
 
 // handleListDeviceOps returns all DeviceOp objects for a given device
@@ -150,9 +161,11 @@ func (m *DeviceOpsManager) handleListDeviceOps(w http.ResponseWriter, r *http.Re
 	if err := m.Initialize(m.workspacePath); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]any{
+		if encErr := json.NewEncoder(w).Encode(map[string]any{
 			"error": "Failed to initialize device ops service",
-		})
+		}); encErr != nil {
+			http.Error(w, encErr.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -162,9 +175,11 @@ func (m *DeviceOpsManager) handleListDeviceOps(w http.ResponseWriter, r *http.Re
 	if fromID == "" || from == "" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusBadRequest)
-		json.NewEncoder(w).Encode(map[string]any{
+		if encErr := json.NewEncoder(w).Encode(map[string]any{
 			"error": "Missing required parameters: from_id, from",
-		})
+		}); encErr != nil {
+			http.Error(w, encErr.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -173,9 +188,11 @@ func (m *DeviceOpsManager) handleListDeviceOps(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]any{
+		if encErr := json.NewEncoder(w).Encode(map[string]any{
 			"error": "Failed to get devices",
-		})
+		}); encErr != nil {
+			http.Error(w, encErr.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -190,9 +207,11 @@ func (m *DeviceOpsManager) handleListDeviceOps(w http.ResponseWriter, r *http.Re
 	if urn == "" {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusNotFound)
-		json.NewEncoder(w).Encode(map[string]any{
+		if encErr := json.NewEncoder(w).Encode(map[string]any{
 			"error": "Device not found",
-		})
+		}); encErr != nil {
+			http.Error(w, encErr.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -201,9 +220,11 @@ func (m *DeviceOpsManager) handleListDeviceOps(w http.ResponseWriter, r *http.Re
 	if err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]any{
+		if encErr := json.NewEncoder(w).Encode(map[string]any{
 			"error": "Failed to get device operations",
-		})
+		}); encErr != nil {
+			http.Error(w, encErr.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 
@@ -219,12 +240,14 @@ func (m *DeviceOpsManager) handleListDeviceOps(w http.ResponseWriter, r *http.Re
 	}
 
 	w.Header().Set("Content-Type", "application/json")
-	json.NewEncoder(w).Encode(map[string]any{
+	if encErr := json.NewEncoder(w).Encode(map[string]any{
 		"success": true,
 		"urn":     urn,
 		"from":    from,
 		"ops":     filteredOps,
-	})
+	}); encErr != nil {
+		http.Error(w, encErr.Error(), http.StatusInternalServerError)
+	}
 }
 
 // handleClearDeviceOps clears all device operations and device ops field for a given brand
@@ -232,9 +255,11 @@ func (m *DeviceOpsManager) handleClearDeviceOps(w http.ResponseWriter, r *http.R
 	if err := m.Initialize(m.workspacePath); err != nil {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusInternalServerError)
-		json.NewEncoder(w).Encode(map[string]any{
+		if encErr := json.NewEncoder(w).Encode(map[string]any{
 			"error": "Failed to initialize device ops service",
-		})
+		}); encErr != nil {
+			http.Error(w, encErr.Error(), http.StatusInternalServerError)
+		}
 		return
 	}
 

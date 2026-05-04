@@ -1,4 +1,4 @@
-﻿// Package utils provides common utility functions.
+// Package utils provides common utility functions.
 package utils
 
 import (
@@ -63,7 +63,14 @@ func buildInputArgs(streamURL string, rtspTransport string) []string {
 // Note: The caller is responsible for cleaning up the temp file after use.
 // If the file is stored in MediaStore, it will be cleaned up when the scope is released.
 // If not stored, the caller should delete it after reading.
-func CapImgBase64(ctx context.Context, streamURL string, seek int, end int, timeout int, rtspTransport string) (dataURI string, filePath string, err error) {
+func CapImgBase64(
+	ctx context.Context,
+	streamURL string,
+	seek int,
+	end int,
+	timeout int,
+	rtspTransport string,
+) (dataURI string, filePath string, err error) {
 	imgDir, err := ensureImgDir()
 	if err != nil {
 		return "", "", err
@@ -91,7 +98,15 @@ func CapImgBase64(ctx context.Context, streamURL string, seek int, end int, time
 //   - timeout: max duration in seconds for the entire operation (context timeout)
 //   - fileName: output file name (used for temp file naming)
 //   - rtspTransport: RTSP transport protocol ("tcp", "udp", or "")
-func CapImg(ctx context.Context, streamURL string, seek int, end int, timeout int, fileName string, rtspTransport string) ([]byte, string, error) {
+func CapImg(
+	ctx context.Context,
+	streamURL string,
+	seek int,
+	end int,
+	timeout int,
+	fileName string,
+	rtspTransport string,
+) ([]byte, string, error) {
 	imgDir, err := ensureImgDir()
 	if err != nil {
 		return nil, "", err
@@ -116,7 +131,15 @@ func CapImg(ctx context.Context, streamURL string, seek int, end int, timeout in
 //   - timeout: max duration in seconds for the entire operation (context timeout)
 //   - fileName: output file path where the frame will be saved
 //   - rtspTransport: RTSP transport protocol ("tcp", "udp", or "")
-func capImg2File(ctx context.Context, streamURL string, seek int, end int, timeout int, fileName string, rtspTransport string) error {
+func capImg2File(
+	ctx context.Context,
+	streamURL string,
+	seek int,
+	end int,
+	timeout int,
+	fileName string,
+	rtspTransport string,
+) error {
 	inputArgs := buildInputArgs(streamURL, rtspTransport)
 
 	// Build output args
@@ -136,7 +159,7 @@ func capImg2File(ctx context.Context, streamURL string, seek int, end int, timeo
 
 	if err := runFFmpegWithTimeout(ctx, args, timeout); err != nil {
 		if ctx.Err() != nil {
-			return fmt.Errorf("frame capture cancelled: %w", ctx.Err())
+			return fmt.Errorf("frame capture canceled: %w", ctx.Err())
 		}
 		return fmt.Errorf("ffmpeg frame capture failed: %w", err)
 	}
@@ -153,7 +176,7 @@ func capImg2File(ctx context.Context, streamURL string, seek int, end int, timeo
 }
 
 // runFFmpegWithTimeout runs ffmpeg with the given arguments, starts it, and waits for
-// completion while honouring ctx cancellation. When ctx is cancelled the
+// completion while honoring ctx cancellation. When ctx is canceled the
 // ffmpeg process is killed immediately.
 // A timeout is enforced to prevent indefinite hangs.
 // stderr is captured and included in the returned error to aid diagnosis.

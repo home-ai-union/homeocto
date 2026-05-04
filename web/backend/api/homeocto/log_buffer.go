@@ -1,4 +1,4 @@
-﻿package homeocto
+package homeocto
 
 import "sync"
 

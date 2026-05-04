@@ -258,7 +258,11 @@ func Run(debug bool, homePath, configPath string, allowEmptyStartup bool) (runEr
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
 
-	go agentLoop.Run(ctx)
+	go func() {
+		if err := agentLoop.Run(ctx); err != nil {
+			logger.Errorf("Agent loop error: %v", err)
+		}
+	}()
 
 	var configReloadChan <-chan *config.Config
 	stopWatch := func() {}
@@ -480,7 +484,9 @@ func stopAndCleanupServices(runningServices *services, shutdownTimeout time.Dura
 
 	// reload should not stop channel manager
 	if !isReload && runningServices.ChannelManager != nil {
-		runningServices.ChannelManager.StopAll(shutdownCtx)
+		if err := runningServices.ChannelManager.StopAll(shutdownCtx); err != nil {
+			logger.Warnf("Error stopping channel manager: %v", err)
+		}
 	}
 	if runningServices.VoiceAgentCancel != nil {
 		runningServices.VoiceAgentCancel()

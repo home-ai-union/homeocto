@@ -48,11 +48,11 @@ func PatchConfig(fpath string, path []string, value any) error {
 
 	// Ensure directory exists
 	dir := filepath.Dir(fpath)
-	if err := os.MkdirAll(dir, 0755); err != nil {
+	if err := os.MkdirAll(dir, 0o755); err != nil {
 		return fmt.Errorf("failed to create config directory: %w", err)
 	}
 
-	return os.WriteFile(fpath, b, 0644)
+	return os.WriteFile(fpath, b, 0o644)
 }
 
 // GetGo2RTCPath returns the full path to the go2rtc.yaml config file.

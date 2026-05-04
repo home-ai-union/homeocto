@@ -10,12 +10,12 @@ import (
 	"strings"
 
 	"github.com/ergochat/readline"
-
-	"github.com/home-ai-union/homeocto/cmd/homeocto/internal"
 	"github.com/sipeed/picoclaw/pkg/agent"
 	"github.com/sipeed/picoclaw/pkg/bus"
 	"github.com/sipeed/picoclaw/pkg/logger"
 	"github.com/sipeed/picoclaw/pkg/providers"
+
+	"github.com/home-ai-union/homeocto/cmd/homeocto/internal"
 )
 
 func agentCmd(message, sessionKey, model string, debug bool) error {

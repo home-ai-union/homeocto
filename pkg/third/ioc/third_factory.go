@@ -1,4 +1,4 @@
-﻿// Package ioc provides the ThirdFactory for creating and managing
+// Package ioc provides the ThirdFactory for creating and managing
 // third-party smart home platform components (e.g., Xiaomi MIoT).
 package ioc
 
@@ -8,6 +8,9 @@ import (
 	"sync"
 
 	"github.com/AlexxIT/go2rtc/pkg/xiaomi"
+	"github.com/sipeed/picoclaw/pkg/config"
+	"github.com/sipeed/picoclaw/pkg/logger"
+
 	hcc "github.com/home-ai-union/homeocto/pkg/config"
 	hcd "github.com/home-ai-union/homeocto/pkg/data"
 	"github.com/home-ai-union/homeocto/pkg/event"
@@ -15,8 +18,6 @@ import (
 	"github.com/home-ai-union/homeocto/pkg/third"
 	"github.com/home-ai-union/homeocto/pkg/third/miio"
 	"github.com/home-ai-union/homeocto/pkg/third/tuya"
-	"github.com/sipeed/picoclaw/pkg/config"
-	"github.com/sipeed/picoclaw/pkg/logger"
 )
 
 // ThirdFactory is the central factory for creating and managing third-party
@@ -142,7 +143,9 @@ func (f *ThirdFactory) GetCloud(sid string) *xiaomi.Cloud {
 		Cfg map[string]string `yaml:"xiaomi"`
 	}
 
-	hcc.LoadGo2RTCConfig(&Xiaomi)
+	if err := hcc.LoadGo2RTCConfig(&Xiaomi); err != nil {
+		logger.Warnf("Failed to load go2rtc config: %v", err)
+	}
 
 	// Get first key-value pair: userId=key, token=value
 	var userId, token string
@@ -151,7 +154,9 @@ func (f *ThirdFactory) GetCloud(sid string) *xiaomi.Cloud {
 		token = v
 		break
 	}
-	f.cloud.LoginWithToken(userId, token)
+	if err := f.cloud.LoginWithToken(userId, token); err != nil {
+		logger.Warnf("Failed to login with token for user %s: %v", userId, err)
+	}
 	return f.cloud
 }
 
@@ -247,7 +252,9 @@ func (f *ThirdFactory) registerTuyaClient(clients *third.ClientsManager) {
 	} else if tuyaClient == nil {
 		logger.Debug("tuya client is nil (unexpected), skipping-------------------------------")
 	} else if tuyaClient.GetAPIKey() == "" {
-		logger.Debug("tuya client created without token (not yet configured), registered for later use-------------------------------")
+		logger.Debug(
+			"tuya client created without token (not yet configured), registered for later use-------------------------------",
+		)
 		clients.Add(tuyaClient)
 	} else {
 		logger.Debug("set tuya client-------------------------------")
@@ -270,7 +277,6 @@ func (f *ThirdFactory) onTokenEvent(evt event.Event) {
 	if brand == "tuya" {
 		f.ResetTuyaClient()
 	}
-
 }
 
 // ResetTuyaClient clears the cached Tuya client so it can be recreated with fresh credentials.

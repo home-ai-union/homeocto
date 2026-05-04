@@ -1,18 +1,19 @@
-﻿package workflow
+package workflow
 
 import (
 	"context"
 	"encoding/json"
 	"testing"
 
-	"github.com/home-ai-union/homeocto/pkg/data"
 	"github.com/sipeed/picoclaw/pkg/tools"
+
+	"github.com/home-ai-union/homeocto/pkg/data"
 )
 
 // mockTool is a mock tool for testing
 type mockTool struct {
 	name    string
-	execute func(ctx context.Context, args map[string]interface{}) *tools.ToolResult
+	execute func(ctx context.Context, args map[string]any) *tools.ToolResult
 }
 
 func (m *mockTool) Name() string {
@@ -23,18 +24,19 @@ func (m *mockTool) Description() string {
 	return "Mock tool for testing"
 }
 
-func (m *mockTool) Parameters() map[string]interface{} {
-	return map[string]interface{}{
-		"type":       "object",
-		"properties": map[string]interface{}{},
+func (m *mockTool) Parameters() map[string]any {
+	return map[string]any{
+		"type":                 "object",
+		"properties":           map[string]any{},
+		"additionalProperties": true,
 	}
 }
 
-func (m *mockTool) Execute(ctx context.Context, args map[string]interface{}) *tools.ToolResult {
+func (m *mockTool) Execute(ctx context.Context, args map[string]any) *tools.ToolResult {
 	if m.execute != nil {
 		return m.execute(ctx, args)
 	}
-	result := map[string]interface{}{"result": "ok"}
+	result := map[string]any{"result": "ok"}
 	resultJSON, _ := json.Marshal(result)
 	return tools.NewToolResult(string(resultJSON))
 }
@@ -45,9 +47,9 @@ func newMockToolRegistry() *tools.ToolRegistry {
 	// Register echo tool
 	registry.Register(&mockTool{
 		name: "echo",
-		execute: func(ctx context.Context, args map[string]interface{}) *tools.ToolResult {
+		execute: func(ctx context.Context, args map[string]any) *tools.ToolResult {
 			message, _ := args["message"].(string)
-			result := map[string]interface{}{"echo": message}
+			result := map[string]any{"echo": message}
 			resultJSON, _ := json.Marshal(result)
 			return tools.NewToolResult(string(resultJSON))
 		},
@@ -56,10 +58,10 @@ func newMockToolRegistry() *tools.ToolRegistry {
 	// Register add tool
 	registry.Register(&mockTool{
 		name: "add",
-		execute: func(ctx context.Context, args map[string]interface{}) *tools.ToolResult {
+		execute: func(ctx context.Context, args map[string]any) *tools.ToolResult {
 			a, _ := args["a"].(float64)
 			b, _ := args["b"].(float64)
-			result := map[string]interface{}{"sum": a + b}
+			result := map[string]any{"sum": a + b}
 			resultJSON, _ := json.Marshal(result)
 			return tools.NewToolResult(string(resultJSON))
 		},
@@ -68,11 +70,11 @@ func newMockToolRegistry() *tools.ToolRegistry {
 	// Register get_items tool
 	registry.Register(&mockTool{
 		name: "get_items",
-		execute: func(ctx context.Context, args map[string]interface{}) *tools.ToolResult {
-			result := []interface{}{
-				map[string]interface{}{"id": "item1", "name": "Item 1"},
-				map[string]interface{}{"id": "item2", "name": "Item 2"},
-				map[string]interface{}{"id": "item3", "name": "Item 3"},
+		execute: func(ctx context.Context, args map[string]any) *tools.ToolResult {
+			result := []any{
+				map[string]any{"id": "item1", "name": "Item 1"},
+				map[string]any{"id": "item2", "name": "Item 2"},
+				map[string]any{"id": "item3", "name": "Item 3"},
 			}
 			resultJSON, _ := json.Marshal(result)
 			return tools.NewToolResult(string(resultJSON))
@@ -82,7 +84,7 @@ func newMockToolRegistry() *tools.ToolRegistry {
 	// Register fail tool
 	registry.Register(&mockTool{
 		name: "fail",
-		execute: func(ctx context.Context, args map[string]interface{}) *tools.ToolResult {
+		execute: func(ctx context.Context, args map[string]any) *tools.ToolResult {
 			return tools.ErrorResult("intentional failure")
 		},
 	})
@@ -102,7 +104,7 @@ func TestEngine_Execute_ActionStep(t *testing.T) {
 				ID:     "step1",
 				Type:   data.StepTypeAction,
 				Action: "echo",
-				Params: map[string]interface{}{
+				Params: map[string]any{
 					"message": "hello world",
 				},
 				OutputAs: "result1",
@@ -113,7 +115,7 @@ func TestEngine_Execute_ActionStep(t *testing.T) {
 	execCtx := data.ExecutionContext{
 		SpaceID:    "test-space",
 		MemberName: "test-user",
-		Input:      map[string]interface{}{},
+		Input:      map[string]any{},
 	}
 
 	record, err := engine.Execute(context.Background(), workflow, execCtx)
@@ -151,7 +153,7 @@ func TestEngine_Execute_ActionStepWithVariables(t *testing.T) {
 				ID:     "step1",
 				Type:   data.StepTypeAction,
 				Action: "echo",
-				Params: map[string]interface{}{
+				Params: map[string]any{
 					"message": "${input.message}",
 				},
 				OutputAs: "result1",
@@ -160,7 +162,7 @@ func TestEngine_Execute_ActionStepWithVariables(t *testing.T) {
 				ID:     "step2",
 				Type:   data.StepTypeAction,
 				Action: "echo",
-				Params: map[string]interface{}{
+				Params: map[string]any{
 					"message": "Previous: ${result1.echo}",
 				},
 				OutputAs: "result2",
@@ -171,7 +173,7 @@ func TestEngine_Execute_ActionStepWithVariables(t *testing.T) {
 	execCtx := data.ExecutionContext{
 		SpaceID:    "test-space",
 		MemberName: "test-user",
-		Input: map[string]interface{}{
+		Input: map[string]any{
 			"message": "hello from input",
 		},
 	}
@@ -191,7 +193,7 @@ func TestEngine_Execute_ActionStepWithVariables(t *testing.T) {
 
 	// Check step 2 used variable from step 1
 	step2Exec := record.StepExecutions[1]
-	result2, ok := step2Exec.Result.(map[string]interface{})
+	result2, ok := step2Exec.Result.(map[string]any)
 	if !ok {
 		t.Fatalf("Expected result2 to be map, got %T", step2Exec.Result)
 	}
@@ -218,7 +220,7 @@ func TestEngine_Execute_ActionStepFailure(t *testing.T) {
 				ID:     "step1",
 				Type:   data.StepTypeAction,
 				Action: "fail",
-				Params: map[string]interface{}{},
+				Params: map[string]any{},
 			},
 		},
 	}
@@ -226,7 +228,7 @@ func TestEngine_Execute_ActionStepFailure(t *testing.T) {
 	execCtx := data.ExecutionContext{
 		SpaceID:    "test-space",
 		MemberName: "test-user",
-		Input:      map[string]interface{}{},
+		Input:      map[string]any{},
 	}
 
 	record, err := engine.Execute(context.Background(), workflow, execCtx)
@@ -270,7 +272,7 @@ func TestEngine_Execute_ConditionStep_True(t *testing.T) {
 							ID:     "then-step",
 							Type:   data.StepTypeAction,
 							Action: "echo",
-							Params: map[string]interface{}{
+							Params: map[string]any{
 								"message": "condition met",
 							},
 							OutputAs: "then_result",
@@ -281,7 +283,7 @@ func TestEngine_Execute_ConditionStep_True(t *testing.T) {
 							ID:     "else-step",
 							Type:   data.StepTypeAction,
 							Action: "echo",
-							Params: map[string]interface{}{
+							Params: map[string]any{
 								"message": "condition not met",
 							},
 							OutputAs: "else_result",
@@ -295,7 +297,7 @@ func TestEngine_Execute_ConditionStep_True(t *testing.T) {
 	execCtx := data.ExecutionContext{
 		SpaceID:    "test-space",
 		MemberName: "test-user",
-		Input: map[string]interface{}{
+		Input: map[string]any{
 			"value": float64(10),
 		},
 	}
@@ -332,7 +334,7 @@ func TestEngine_Execute_ConditionStep_False(t *testing.T) {
 							ID:     "then-step",
 							Type:   data.StepTypeAction,
 							Action: "echo",
-							Params: map[string]interface{}{
+							Params: map[string]any{
 								"message": "condition met",
 							},
 						},
@@ -342,7 +344,7 @@ func TestEngine_Execute_ConditionStep_False(t *testing.T) {
 							ID:     "else-step",
 							Type:   data.StepTypeAction,
 							Action: "echo",
-							Params: map[string]interface{}{
+							Params: map[string]any{
 								"message": "condition not met",
 							},
 							OutputAs: "else_result",
@@ -356,7 +358,7 @@ func TestEngine_Execute_ConditionStep_False(t *testing.T) {
 	execCtx := data.ExecutionContext{
 		SpaceID:    "test-space",
 		MemberName: "test-user",
-		Input: map[string]interface{}{
+		Input: map[string]any{
 			"value": float64(5),
 		},
 	}
@@ -383,7 +385,7 @@ func TestEngine_Execute_LoopStep_ForEach(t *testing.T) {
 				ID:       "get-items",
 				Type:     data.StepTypeAction,
 				Action:   "get_items",
-				Params:   map[string]interface{}{},
+				Params:   map[string]any{},
 				OutputAs: "items",
 			},
 			{
@@ -398,7 +400,7 @@ func TestEngine_Execute_LoopStep_ForEach(t *testing.T) {
 							ID:     "process-item",
 							Type:   data.StepTypeAction,
 							Action: "echo",
-							Params: map[string]interface{}{
+							Params: map[string]any{
 								"message": "${item.name}",
 							},
 						},
@@ -411,7 +413,7 @@ func TestEngine_Execute_LoopStep_ForEach(t *testing.T) {
 	execCtx := data.ExecutionContext{
 		SpaceID:    "test-space",
 		MemberName: "test-user",
-		Input:      map[string]interface{}{},
+		Input:      map[string]any{},
 	}
 
 	record, err := engine.Execute(context.Background(), workflow, execCtx)
@@ -455,7 +457,7 @@ func TestEngine_Execute_LoopStep_Repeat(t *testing.T) {
 							ID:     "process",
 							Type:   data.StepTypeAction,
 							Action: "echo",
-							Params: map[string]interface{}{
+							Params: map[string]any{
 								"message": "iteration ${i}",
 							},
 						},
@@ -468,7 +470,7 @@ func TestEngine_Execute_LoopStep_Repeat(t *testing.T) {
 	execCtx := data.ExecutionContext{
 		SpaceID:    "test-space",
 		MemberName: "test-user",
-		Input:      map[string]interface{}{},
+		Input:      map[string]any{},
 	}
 
 	record, err := engine.Execute(context.Background(), workflow, execCtx)
@@ -482,7 +484,7 @@ func TestEngine_Execute_LoopStep_Repeat(t *testing.T) {
 
 	// Check loop result has 3 iterations
 	loopExec := record.StepExecutions[0]
-	result, ok := loopExec.Result.(map[string]interface{})
+	result, ok := loopExec.Result.(map[string]any)
 	if !ok {
 		t.Fatalf("Expected loop result to be map, got %T", loopExec.Result)
 	}
@@ -509,7 +511,7 @@ func TestEngine_Execute_MultipleSteps(t *testing.T) {
 				ID:     "step1",
 				Type:   data.StepTypeAction,
 				Action: "add",
-				Params: map[string]interface{}{
+				Params: map[string]any{
 					"a": float64(1),
 					"b": float64(2),
 				},
@@ -519,7 +521,7 @@ func TestEngine_Execute_MultipleSteps(t *testing.T) {
 				ID:     "step2",
 				Type:   data.StepTypeAction,
 				Action: "add",
-				Params: map[string]interface{}{
+				Params: map[string]any{
 					"a": float64(3),
 					"b": float64(4),
 				},
@@ -529,7 +531,7 @@ func TestEngine_Execute_MultipleSteps(t *testing.T) {
 				ID:     "step3",
 				Type:   data.StepTypeAction,
 				Action: "echo",
-				Params: map[string]interface{}{
+				Params: map[string]any{
 					"message": "Done",
 				},
 			},
@@ -539,7 +541,7 @@ func TestEngine_Execute_MultipleSteps(t *testing.T) {
 	execCtx := data.ExecutionContext{
 		SpaceID:    "test-space",
 		MemberName: "test-user",
-		Input:      map[string]interface{}{},
+		Input:      map[string]any{},
 	}
 
 	record, err := engine.Execute(context.Background(), workflow, execCtx)
@@ -590,7 +592,7 @@ func TestEngine_Execute_NoToolRegistry(t *testing.T) {
 				ID:     "step1",
 				Type:   data.StepTypeAction,
 				Action: "echo",
-				Params: map[string]interface{}{
+				Params: map[string]any{
 					"message": "hello",
 				},
 			},
@@ -600,7 +602,7 @@ func TestEngine_Execute_NoToolRegistry(t *testing.T) {
 	execCtx := data.ExecutionContext{
 		SpaceID:    "test-space",
 		MemberName: "test-user",
-		Input:      map[string]interface{}{},
+		Input:      map[string]any{},
 	}
 
 	record, err := engine.Execute(context.Background(), workflow, execCtx)
@@ -621,17 +623,17 @@ func TestEngine_Execute_NoToolRegistry(t *testing.T) {
 func TestEngine_resolveString(t *testing.T) {
 	e := &engine{}
 
-	variables := map[string]interface{}{
+	variables := map[string]any{
 		"name":    "John",
 		"count":   42,
 		"enabled": true,
-		"user": map[string]interface{}{
+		"user": map[string]any{
 			"name": "Alice",
 			"age":  30,
 		},
-		"items": []interface{}{
-			map[string]interface{}{"id": "1", "name": "Item 1"},
-			map[string]interface{}{"id": "2", "name": "Item 2"},
+		"items": []any{
+			map[string]any{"id": "1", "name": "Item 1"},
+			map[string]any{"id": "2", "name": "Item 2"},
 		},
 	}
 
@@ -659,7 +661,7 @@ func TestEngine_resolveString(t *testing.T) {
 func TestEngine_evaluateCondition(t *testing.T) {
 	e := &engine{}
 
-	variables := map[string]interface{}{
+	variables := map[string]any{
 		"value":   float64(10),
 		"name":    "test",
 		"enabled": true,
@@ -706,7 +708,7 @@ func TestEngine_isTruthy(t *testing.T) {
 	e := &engine{}
 
 	tests := []struct {
-		value    interface{}
+		value    any
 		expected bool
 	}{
 		{true, true},
@@ -720,8 +722,8 @@ func TestEngine_isTruthy(t *testing.T) {
 		{float64(1.5), true},
 		{float64(0), false},
 		{nil, false},
-		{[]interface{}{}, false},
-		{[]interface{}{1, 2}, true},
+		{[]any{}, false},
+		{[]any{1, 2}, true},
 	}
 
 	for _, test := range tests {

@@ -89,13 +89,13 @@ const (
 
 // IntentResult is the output of the intent classifier.
 type IntentResult struct {
-	// Type is the recognised intent.
+	// Type is the recognized intent.
 	Type IntentType `json:"intent"`
 	// Confidence is the classifier's confidence score in [0, 1].
 	Confidence float64 `json:"confidence"`
 	// Entities contains extracted named entities relevant to the intent,
 	// e.g. {"device_name": "台灯", "action": "on"}.
-	Entities map[string]interface{} `json:"entities"`
+	Entities map[string]any `json:"entities"`
 }
 
 // IntentContext carries all information an Intent handler needs to process

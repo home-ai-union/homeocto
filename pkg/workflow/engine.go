@@ -1,4 +1,4 @@
-﻿// Package workflow provides workflow engine for HomeClaw.
+// Package workflow provides workflow engine for HomeClaw.
 package workflow
 
 import (
@@ -12,15 +12,22 @@ import (
 	"time"
 
 	"github.com/google/uuid"
-	"github.com/home-ai-union/homeocto/pkg/data"
 	"github.com/sipeed/picoclaw/pkg/logger"
 	"github.com/sipeed/picoclaw/pkg/tools"
+	"golang.org/x/text/cases"
+	"golang.org/x/text/language"
+
+	"github.com/home-ai-union/homeocto/pkg/data"
 )
 
 // Engine is the workflow execution engine
 type Engine interface {
 	// Execute executes a workflow with given definition and context
-	Execute(ctx context.Context, workflowDef *data.WorkflowDef, execCtx data.ExecutionContext) (*data.ExecutionRecord, error)
+	Execute(
+		ctx context.Context,
+		workflowDef *data.WorkflowDef,
+		execCtx data.ExecutionContext,
+	) (*data.ExecutionRecord, error)
 }
 
 // engine implements the Engine interface
@@ -36,7 +43,11 @@ func NewEngine(toolRegistry *tools.ToolRegistry) Engine {
 }
 
 // Execute executes a workflow
-func (e *engine) Execute(ctx context.Context, workflowDef *data.WorkflowDef, execCtx data.ExecutionContext) (*data.ExecutionRecord, error) {
+func (e *engine) Execute(
+	ctx context.Context,
+	workflowDef *data.WorkflowDef,
+	execCtx data.ExecutionContext,
+) (*data.ExecutionRecord, error) {
 	executionID := uuid.New().String()
 	execCtx.ExecutionID = executionID
 	execCtx.WorkflowID = workflowDef.ID
@@ -50,7 +61,7 @@ func (e *engine) Execute(ctx context.Context, workflowDef *data.WorkflowDef, exe
 	}
 
 	logger.InfoCF("workflow", "Starting workflow execution",
-		map[string]interface{}{
+		map[string]any{
 			"execution_id":  executionID,
 			"workflow_id":   workflowDef.ID,
 			"workflow_name": workflowDef.Name,
@@ -58,9 +69,9 @@ func (e *engine) Execute(ctx context.Context, workflowDef *data.WorkflowDef, exe
 		})
 
 	// Initialize variables storage
-	variables := map[string]interface{}{
+	variables := map[string]any{
 		"input": execCtx.Input,
-		"context": map[string]interface{}{
+		"context": map[string]any{
 			"space_id":    execCtx.SpaceID,
 			"member_name": execCtx.MemberName,
 			"trigger_by":  execCtx.TriggerBy,
@@ -77,7 +88,7 @@ func (e *engine) Execute(ctx context.Context, workflowDef *data.WorkflowDef, exe
 			record.Error = stepExec.Error
 			record.CompletedAt = time.Now()
 			logger.ErrorCF("workflow", "Workflow execution failed",
-				map[string]interface{}{
+				map[string]any{
 					"execution_id": executionID,
 					"workflow_id":  workflowDef.ID,
 					"failed_step":  step.ID,
@@ -96,7 +107,7 @@ func (e *engine) Execute(ctx context.Context, workflowDef *data.WorkflowDef, exe
 	record.CompletedAt = time.Now()
 
 	logger.InfoCF("workflow", "Workflow execution completed",
-		map[string]interface{}{
+		map[string]any{
 			"execution_id":   executionID,
 			"workflow_id":    workflowDef.ID,
 			"execution_time": record.CompletedAt.Sub(record.StartedAt).Milliseconds(),
@@ -104,7 +115,7 @@ func (e *engine) Execute(ctx context.Context, workflowDef *data.WorkflowDef, exe
 
 	// Log execution record as JSON
 	recordJSON, _ := json.Marshal(record)
-	logger.InfoCF("workflow", "Execution record", map[string]interface{}{
+	logger.InfoCF("workflow", "Execution record", map[string]any{
 		"record": string(recordJSON),
 	})
 
@@ -112,7 +123,12 @@ func (e *engine) Execute(ctx context.Context, workflowDef *data.WorkflowDef, exe
 }
 
 // executeStep executes a single step
-func (e *engine) executeStep(ctx context.Context, step data.Step, variables map[string]interface{}, stepNum, totalSteps int) data.StepExecution {
+func (e *engine) executeStep(
+	ctx context.Context,
+	step data.Step,
+	variables map[string]any,
+	stepNum, totalSteps int,
+) data.StepExecution {
 	now := time.Now()
 	stepExec := data.StepExecution{
 		StepID:    step.ID,
@@ -120,7 +136,7 @@ func (e *engine) executeStep(ctx context.Context, step data.Step, variables map[
 	}
 
 	logger.InfoCF("workflow", fmt.Sprintf("Executing step %d/%d: %s", stepNum, totalSteps, step.Type),
-		map[string]interface{}{
+		map[string]any{
 			"step_id":     step.ID,
 			"step_type":   step.Type,
 			"step_name":   step.Name,
@@ -144,7 +160,12 @@ func (e *engine) executeStep(ctx context.Context, step data.Step, variables map[
 }
 
 // executeActionStep executes an action step (tool/skill call)
-func (e *engine) executeActionStep(ctx context.Context, step data.Step, variables map[string]interface{}, stepExec data.StepExecution) data.StepExecution {
+func (e *engine) executeActionStep(
+	ctx context.Context,
+	step data.Step,
+	variables map[string]any,
+	stepExec data.StepExecution,
+) data.StepExecution {
 	stepExec.Action = step.Action
 
 	// Resolve variables in parameters
@@ -154,7 +175,7 @@ func (e *engine) executeActionStep(ctx context.Context, step data.Step, variable
 	// Log action execution
 	paramsJSON, _ := json.Marshal(resolvedParams)
 	logger.InfoCF("workflow", fmt.Sprintf("Action: %s", step.Action),
-		map[string]interface{}{
+		map[string]any{
 			"step_id": step.ID,
 			"action":  step.Action,
 			"params":  string(paramsJSON),
@@ -179,7 +200,7 @@ func (e *engine) executeActionStep(ctx context.Context, step data.Step, variable
 			stepExec.Error = result.ForLLM
 		}
 		logger.ErrorCF("workflow", "Action failed",
-			map[string]interface{}{
+			map[string]any{
 				"step_id": step.ID,
 				"action":  step.Action,
 				"error":   stepExec.Error,
@@ -187,13 +208,13 @@ func (e *engine) executeActionStep(ctx context.Context, step data.Step, variable
 	} else {
 		stepExec.Success = true
 		// Parse ForLLM as JSON if possible, otherwise use as string
-		var resultData interface{}
+		var resultData any
 		if err := json.Unmarshal([]byte(result.ForLLM), &resultData); err != nil {
 			resultData = result.ForLLM
 		}
 		stepExec.Result = resultData
 		logger.InfoCF("workflow", "Action completed",
-			map[string]interface{}{
+			map[string]any{
 				"step_id": step.ID,
 				"action":  step.Action,
 			})
@@ -203,7 +224,12 @@ func (e *engine) executeActionStep(ctx context.Context, step data.Step, variable
 }
 
 // executeConditionStep executes a condition step
-func (e *engine) executeConditionStep(ctx context.Context, step data.Step, variables map[string]interface{}, stepExec data.StepExecution) data.StepExecution {
+func (e *engine) executeConditionStep(
+	ctx context.Context,
+	step data.Step,
+	variables map[string]any,
+	stepExec data.StepExecution,
+) data.StepExecution {
 	stepExec.Action = "condition"
 
 	if step.Condition == nil {
@@ -215,13 +241,13 @@ func (e *engine) executeConditionStep(ctx context.Context, step data.Step, varia
 
 	// Evaluate condition
 	conditionMet := e.evaluateCondition(step.Condition.If, variables)
-	stepExec.Params = map[string]interface{}{
+	stepExec.Params = map[string]any{
 		"condition": step.Condition.If,
 		"result":    conditionMet,
 	}
 
 	logger.InfoCF("workflow", fmt.Sprintf("Condition: %s = %v", step.Condition.If, conditionMet),
-		map[string]interface{}{
+		map[string]any{
 			"step_id":   step.ID,
 			"condition": step.Condition.If,
 			"result":    conditionMet,
@@ -255,7 +281,12 @@ func (e *engine) executeConditionStep(ctx context.Context, step data.Step, varia
 }
 
 // executeLoopStep executes a loop step
-func (e *engine) executeLoopStep(ctx context.Context, step data.Step, variables map[string]interface{}, stepExec data.StepExecution) data.StepExecution {
+func (e *engine) executeLoopStep(
+	ctx context.Context,
+	step data.Step,
+	variables map[string]any,
+	stepExec data.StepExecution,
+) data.StepExecution {
 	stepExec.Action = "loop"
 
 	if step.Loop == nil {
@@ -271,13 +302,13 @@ func (e *engine) executeLoopStep(ctx context.Context, step data.Step, variables 
 		maxIterations = 100 // Default max iterations
 	}
 
-	stepExec.Params = map[string]interface{}{
+	stepExec.Params = map[string]any{
 		"type":       loop.Type,
 		"expression": loop.Expression,
 	}
 
 	logger.InfoCF("workflow", fmt.Sprintf("Loop: %s", loop.Type),
-		map[string]interface{}{
+		map[string]any{
 			"step_id":    step.ID,
 			"loop_type":  loop.Type,
 			"expression": loop.Expression,
@@ -292,7 +323,7 @@ func (e *engine) executeLoopStep(ctx context.Context, step data.Step, variables 
 
 		// Handle case where collection is a JSON string that needs parsing
 		if str, ok := collection.(string); ok {
-			var parsed interface{}
+			var parsed any
 			if err := json.Unmarshal([]byte(str), &parsed); err == nil {
 				collection = parsed
 			}
@@ -398,13 +429,13 @@ func (e *engine) executeLoopStep(ctx context.Context, step data.Step, variables 
 	}
 
 	stepExec.Success = true
-	stepExec.Result = map[string]interface{}{
+	stepExec.Result = map[string]any{
 		"iterations": iterationCount,
 	}
 	stepExec.CompletedAt = time.Now()
 
 	logger.InfoCF("workflow", fmt.Sprintf("Loop completed: %d iterations", iterationCount),
-		map[string]interface{}{
+		map[string]any{
 			"step_id":    step.ID,
 			"iterations": iterationCount,
 		})
@@ -413,12 +444,12 @@ func (e *engine) executeLoopStep(ctx context.Context, step data.Step, variables 
 }
 
 // resolveParams resolves variables in parameter map
-func (e *engine) resolveParams(params map[string]interface{}, variables map[string]interface{}) map[string]interface{} {
+func (e *engine) resolveParams(params map[string]any, variables map[string]any) map[string]any {
 	if params == nil {
 		return nil
 	}
 
-	result := make(map[string]interface{})
+	result := make(map[string]any)
 	for key, value := range params {
 		result[key] = e.resolveValue(value, variables)
 	}
@@ -426,14 +457,14 @@ func (e *engine) resolveParams(params map[string]interface{}, variables map[stri
 }
 
 // resolveValue resolves variables in a value
-func (e *engine) resolveValue(value interface{}, variables map[string]interface{}) interface{} {
+func (e *engine) resolveValue(value any, variables map[string]any) any {
 	switch v := value.(type) {
 	case string:
 		return e.resolveString(v, variables)
-	case map[string]interface{}:
+	case map[string]any:
 		return e.resolveParams(v, variables)
-	case []interface{}:
-		result := make([]interface{}, len(v))
+	case []any:
+		result := make([]any, len(v))
 		for i, item := range v {
 			result[i] = e.resolveValue(item, variables)
 		}
@@ -444,7 +475,7 @@ func (e *engine) resolveValue(value interface{}, variables map[string]interface{
 }
 
 // resolveString resolves ${var} syntax in a string
-func (e *engine) resolveString(template string, variables map[string]interface{}) string {
+func (e *engine) resolveString(template string, variables map[string]any) string {
 	// Match ${var} or ${var.property} or ${var[index]}
 	re := regexp.MustCompile(`\$\{([^}]+)\}`)
 
@@ -477,7 +508,7 @@ func (e *engine) resolveString(template string, variables map[string]interface{}
 }
 
 // getVariableValue gets a variable value by path (e.g., "input.room" or "context.space_id")
-func (e *engine) getVariableValue(path string, variables map[string]interface{}) interface{} {
+func (e *engine) getVariableValue(path string, variables map[string]any) any {
 	parts := strings.Split(path, ".")
 	if len(parts) == 0 {
 		return nil
@@ -521,7 +552,7 @@ func (e *engine) getVariableValue(path string, variables map[string]interface{})
 		}
 
 		// Handle map access
-		if m, ok := value.(map[string]interface{}); ok {
+		if m, ok := value.(map[string]any); ok {
 			value = m[part]
 			continue
 		}
@@ -537,8 +568,9 @@ func (e *engine) getVariableValue(path string, variables map[string]interface{})
 
 		field := val.FieldByName(part)
 		if !field.IsValid() {
-			// Try lowercase field name
-			field = val.FieldByName(strings.Title(part))
+			// Try title case field name
+			titleCaser := cases.Title(language.English)
+			field = val.FieldByName(titleCaser.String(part))
 		}
 		if !field.IsValid() {
 			return nil
@@ -550,7 +582,7 @@ func (e *engine) getVariableValue(path string, variables map[string]interface{})
 }
 
 // evaluateCondition evaluates a condition expression
-func (e *engine) evaluateCondition(expression string, variables map[string]interface{}) bool {
+func (e *engine) evaluateCondition(expression string, variables map[string]any) bool {
 	// Handle simple truthy check (no operators)
 	if !strings.Contains(expression, "==") && !strings.Contains(expression, "!=") &&
 		!strings.Contains(expression, ">=") && !strings.Contains(expression, "<=") &&
@@ -589,7 +621,7 @@ func (e *engine) evaluateCondition(expression string, variables map[string]inter
 }
 
 // isTruthy checks if a value is truthy
-func (e *engine) isTruthy(value interface{}) bool {
+func (e *engine) isTruthy(value any) bool {
 	if value == nil {
 		return false
 	}
@@ -603,7 +635,7 @@ func (e *engine) isTruthy(value interface{}) bool {
 		return v != 0
 	case float64:
 		return v != 0
-	case []interface{}:
+	case []any:
 		return len(v) > 0
 	default:
 		val := reflect.ValueOf(value)

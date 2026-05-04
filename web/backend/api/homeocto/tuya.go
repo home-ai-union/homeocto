@@ -1,4 +1,4 @@
-﻿package homeocto
+package homeocto
 
 import (
 	"bytes"
@@ -11,9 +11,10 @@ import (
 	"sync"
 
 	go2rtcTuya "github.com/AlexxIT/go2rtc/pkg/tuya"
+	"github.com/sipeed/picoclaw/pkg/logger"
+
 	"github.com/home-ai-union/homeocto/pkg/config"
 	hcd "github.com/home-ai-union/homeocto/pkg/data"
-	"github.com/sipeed/picoclaw/pkg/logger"
 )
 
 // GetRegionByHost finds a region by its host

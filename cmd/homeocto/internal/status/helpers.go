@@ -5,10 +5,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/home-ai-union/homeocto/cmd/homeocto/internal"
-	"github.com/home-ai-union/homeocto/cmd/homeocto/internal/cliui"
 	"github.com/sipeed/picoclaw/pkg/auth"
 	"github.com/sipeed/picoclaw/pkg/config"
+
+	"github.com/home-ai-union/homeocto/cmd/homeocto/internal"
+	"github.com/home-ai-union/homeocto/cmd/homeocto/internal/cliui"
 )
 
 func statusCmd() {

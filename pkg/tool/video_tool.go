@@ -5,12 +5,13 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/home-ai-union/homeocto/pkg/llm"
-	"github.com/home-ai-union/homeocto/pkg/utils"
 	"github.com/sipeed/picoclaw/pkg/logger"
 	"github.com/sipeed/picoclaw/pkg/media"
 	"github.com/sipeed/picoclaw/pkg/providers"
 	"github.com/sipeed/picoclaw/pkg/tools"
+
+	"github.com/home-ai-union/homeocto/pkg/llm"
+	"github.com/home-ai-union/homeocto/pkg/utils"
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -81,7 +82,6 @@ type videoCommandRequest struct {
 }
 
 func (t *VideoTool) Execute(ctx context.Context, args map[string]any) *tools.ToolResult {
-
 	commandJson, ok := args["commandJson"].(string)
 	if !ok || commandJson == "" {
 		return &tools.ToolResult{ForLLM: "missing or invalid 'commandJson' parameter", IsError: true}
@@ -112,7 +112,10 @@ func (t *VideoTool) Execute(ctx context.Context, args map[string]any) *tools.Too
 		return t.execCapAnalyze(ctx, rtspURL, req.Params)
 	default:
 		return &tools.ToolResult{
-			ForLLM:  fmt.Sprintf("unknown method '%s'; Must Confirm! tool must invoke by skills[camera-control]!", req.Method),
+			ForLLM: fmt.Sprintf(
+				"unknown method '%s'; Must Confirm! tool must invoke by skills[camera-control]!",
+				req.Method,
+			),
 			IsError: true,
 		}
 	}

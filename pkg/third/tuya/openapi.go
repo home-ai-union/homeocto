@@ -434,9 +434,17 @@ func (api *TuyaOpenAPI) GetStatisticsConfig() (map[string]any, error) {
 // startTime/endTime format: yyyyMMddHH (e.g., 2024010100)
 // statisticType: SUM, COUNT, MAX, MIN, MINUS
 // dpCode: data point code (e.g., ele_usage for electricity)
-func (api *TuyaOpenAPI) GetStatisticsData(deviceID, dpCode, statisticType, startTime, endTime string) (map[string]any, error) {
-	path := fmt.Sprintf("/v1.0/end-user/statistics/hour/data?dev_id=%s&dp_code=%s&statistic_type=%s&start_time=%s&end_time=%s",
-		deviceID, dpCode, statisticType, startTime, endTime)
+func (api *TuyaOpenAPI) GetStatisticsData(
+	deviceID, dpCode, statisticType, startTime, endTime string,
+) (map[string]any, error) {
+	path := fmt.Sprintf(
+		"/v1.0/end-user/statistics/hour/data?dev_id=%s&dp_code=%s&statistic_type=%s&start_time=%s&end_time=%s",
+		deviceID,
+		dpCode,
+		statisticType,
+		startTime,
+		endTime,
+	)
 	return api.doGet(path)
 }
 
@@ -444,7 +452,11 @@ func (api *TuyaOpenAPI) GetStatisticsData(deviceID, dpCode, statisticType, start
 
 // IPCCaptureAllocate allocates a cloud capture (snapshot or short video).
 // captureType: "PIC" for snapshot, "VIDEO" for short video
-func (api *TuyaOpenAPI) IPCCaptureAllocate(deviceID, captureType string, picCount, videoDurationSeconds int, homeID string) (map[string]any, error) {
+func (api *TuyaOpenAPI) IPCCaptureAllocate(
+	deviceID, captureType string,
+	picCount, videoDurationSeconds int,
+	homeID string,
+) (map[string]any, error) {
 	captureParams := map[string]any{
 		"device_id":    deviceID,
 		"capture_type": captureType,
@@ -467,7 +479,10 @@ func (api *TuyaOpenAPI) IPCCaptureAllocate(deviceID, captureType string, picCoun
 
 // IPCCaptureResolve resolves capture access URL.
 // userPrivacyConsentAccepted: true for decrypted URLs
-func (api *TuyaOpenAPI) IPCCaptureResolve(deviceID, captureType, bucket string, params map[string]any) (map[string]any, error) {
+func (api *TuyaOpenAPI) IPCCaptureResolve(
+	deviceID, captureType, bucket string,
+	params map[string]any,
+) (map[string]any, error) {
 	resolveParams := map[string]any{
 		"device_id":    deviceID,
 		"capture_type": captureType,

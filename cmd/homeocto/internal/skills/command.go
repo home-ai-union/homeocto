@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"path/filepath"
 
+	"github.com/sipeed/picoclaw/pkg/skills"
 	"github.com/spf13/cobra"
 
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal"
-	"github.com/sipeed/picoclaw/pkg/skills"
 )
 
 type deps struct {

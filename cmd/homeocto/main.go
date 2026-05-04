@@ -11,6 +11,8 @@ import (
 	"os"
 	"time"
 
+	picoconfig "github.com/sipeed/picoclaw/pkg/config"
+	"github.com/sipeed/picoclaw/pkg/updater"
 	"github.com/spf13/cobra"
 
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal"
@@ -26,8 +28,6 @@ import (
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal/status"
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal/version"
 	"github.com/home-ai-union/homeocto/pkg/config"
-	picoconfig "github.com/sipeed/picoclaw/pkg/config"
-	"github.com/sipeed/picoclaw/pkg/updater"
 )
 
 var rootNoColor bool
