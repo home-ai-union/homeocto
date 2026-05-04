@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"strings"
 
-	homeconfig "github.com/home-ai-union/homeocto/pkg/config"
+	homecfg "github.com/home-ai-union/homeocto/pkg/config"
 	"github.com/sipeed/picoclaw/pkg/providers"
 )
 
@@ -72,7 +72,7 @@ const intentClassifyPrompt = `你是一个智能家居助手的意图识别器�
 // llmClassifier implements IntentClassifier by calling a small language model.
 type llmClassifier struct {
 	provider  providers.LLMProvider
-	cfg       *homeconfig.HomeConfig
+	cfg       *homecfg.HomeConfig
 	modelName string // resolved model identifier sent to the provider
 }
 
@@ -81,7 +81,7 @@ type llmClassifier struct {
 // modelName is the model identifier passed to provider.Chat().
 func NewLLMClassifier(
 	provider providers.LLMProvider,
-	cfg *homeconfig.HomeConfig,
+	cfg *homecfg.HomeConfig,
 	modelName string,
 ) IntentClassifier {
 	return &llmClassifier{
@@ -152,7 +152,9 @@ func extractJSON(s string) string {
 	// Strip markdown code fences if present.
 	if idx := strings.Index(s, "```"); idx >= 0 {
 		s = s[idx+3:]
-		s = strings.TrimPrefix(s, "json")
+		if strings.HasPrefix(s, "json") {
+			s = s[4:]
+		}
 		if end := strings.Index(s, "```"); end >= 0 {
 			s = s[:end]
 		}

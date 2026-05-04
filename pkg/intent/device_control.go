@@ -1,4 +1,4 @@
-﻿package intent
+package intent
 
 import (
 	"context"
@@ -14,7 +14,7 @@ import (
 
 // DeviceControlIntent handles all device.control.* intents.
 //
-// Processing logic (mirrors ��ͼʶ�����.md ��4.1):
+// Processing logic (mirrors 意图识别设计.md §4.1):
 //  1. Query the WorkflowStore for a workflow whose triggers match the user input.
 //  2. If a match is found, execute it via workflow.Engine and return the result.
 //  3. If no match is found, return Handled=false so the agent loop falls through
@@ -54,7 +54,7 @@ func (d *DeviceControlIntent) Types() []IntentType {
 // Run executes the device control intent.
 func (d *DeviceControlIntent) Run(ctx context.Context, ictx IntentContext) IntentResponse {
 	if d.workflowStore == nil || d.engine == nil {
-		// Infrastructure not available �C fall through to large model.
+		// Infrastructure not available – fall through to large model.
 		return IntentResponse{Handled: false}
 	}
 
@@ -67,7 +67,7 @@ func (d *DeviceControlIntent) Run(ctx context.Context, ictx IntentContext) Inten
 	}
 
 	if wf == nil {
-		// No match found �C ask the large model to generate a workflow.
+		// No match found – ask the large model to generate a workflow.
 		logger.InfoCF("intent", "no matching workflow, falling through to large model",
 			map[string]any{"input": ictx.UserInput})
 		return IntentResponse{Handled: false}
@@ -89,7 +89,7 @@ func (d *DeviceControlIntent) Run(ctx context.Context, ictx IntentContext) Inten
 			map[string]any{"workflow_id": wf.ID, "error": err.Error()})
 		return IntentResponse{
 			Handled:  true,
-			Response: fmt.Sprintf("ִ�й�������%s��ʱ���ִ������Ժ����ԡ�", wf.Name),
+			Response: fmt.Sprintf("执行工作流「%s」时出现错误，请稍后重试。", wf.Name),
 			Error:    err,
 		}
 	}
@@ -123,12 +123,12 @@ func (d *DeviceControlIntent) matchWorkflow(ctx context.Context, userInput strin
 		return nil, nil
 	}
 
-	systemPrompt := `����һ��������ƥ�����֡������û�ָ��Ӻ�ѡ�������б���ѡ����ƥ���һ����
-ֻ��� JSON����ʽΪ {"id":"<workflow-id>"}��
-���û�к��ʵĹ���������� {"id":""}��
-��Ҫ����κ��������ݡ�`
+	systemPrompt := `你是一个工作流匹配助手。根据用户指令，从候选工作流列表中选出最匹配的一个。
+只输出 JSON，格式为 {"id":"<workflow-id>"}。
+如果没有合适的工作流，输出 {"id":""}。
+不要输出任何其他内容。`
 
-	userMsg := fmt.Sprintf("��ѡ��������\n%s\n�û�ָ�%s", catalogue.String(), userInput)
+	userMsg := fmt.Sprintf("候选工作流：\n%s\n用户指令：%s", catalogue.String(), userInput)
 
 	messages := []providers.Message{
 		{Role: "system", Content: systemPrompt},
@@ -173,13 +173,54 @@ func (d *DeviceControlIntent) matchWorkflow(ctx context.Context, userInput strin
 	return wf, nil
 }
 
+// scoreWorkflow gives a rough relevance score between 0 and 100.
+// Kept as fallback; not used when provider is available.
+func scoreWorkflow(m *data.WorkflowMeta, userInput string, hints []string) int {
+	score := 0
+	target := m.Name + " " + m.Description
+
+	for _, hint := range hints {
+		if hint == "" {
+			continue
+		}
+		if contains(target, hint) {
+			score += 30
+		}
+	}
+	if contains(target, userInput) {
+		score += 20
+	}
+	return score
+}
+
+// contains reports whether s contains substr (case-insensitive ASCII).
+func contains(s, substr string) bool {
+	return len(s) > 0 && len(substr) > 0 &&
+		indexInsensitive(s, substr) >= 0
+}
+
+func indexInsensitive(s, substr string) int {
+	sLow := strings.ToLower(s)
+	subLow := strings.ToLower(substr)
+	return indexOf(sLow, subLow)
+}
+
+func indexOf(s, substr string) int {
+	for i := 0; i <= len(s)-len(substr); i++ {
+		if s[i:i+len(substr)] == substr {
+			return i
+		}
+	}
+	return -1
+}
+
 // buildExecutionSummary creates a brief human-readable summary of a workflow run.
 func buildExecutionSummary(workflowName string, record *data.ExecutionRecord) string {
 	if record == nil {
-		return fmt.Sprintf("��ִ�й�������%s����", workflowName)
+		return fmt.Sprintf("已执行工作流「%s」。", workflowName)
 	}
 	if !record.Success {
-		return fmt.Sprintf("��������%s��ִ��ʧ�ܣ�%s", workflowName, record.Error)
+		return fmt.Sprintf("工作流「%s」执行失败：%s", workflowName, record.Error)
 	}
-	return fmt.Sprintf("����ɣ�%s����ִ�� %d ������", workflowName, len(record.StepExecutions))
+	return fmt.Sprintf("已完成：%s（共执行 %d 步）。", workflowName, len(record.StepExecutions))
 }
