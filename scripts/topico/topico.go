@@ -148,7 +148,7 @@ func syncFiles(config SyncConfig) error {
 		}
 
 		// 创建目标目录
-		if err := os.MkdirAll(filepath.Dir(dstPath), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(dstPath), 0o755); err != nil {
 			return fmt.Errorf("create directory %s: %w", filepath.Dir(dstPath), err)
 		}
 
@@ -242,7 +242,7 @@ func copyDir(src, dst string) error {
 // 拷贝单个文件
 func copyFile(src, dst string) error {
 	// 创建目标目录
-	if err := os.MkdirAll(filepath.Dir(dst), 0755); err != nil {
+	if err := os.MkdirAll(filepath.Dir(dst), 0o755); err != nil {
 		return fmt.Errorf("create directory %s: %w", filepath.Dir(dst), err)
 	}
 

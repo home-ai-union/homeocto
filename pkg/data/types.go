@@ -131,9 +131,9 @@ type Step struct {
 	Name string   `json:"name,omitempty"` // Step name for debugging
 
 	// Action type fields
-	Action   string                 `json:"action,omitempty"`    // Tool/skill name
-	Params   map[string]interface{} `json:"params,omitempty"`    // Parameters with variable support
-	OutputAs string                 `json:"output_as,omitempty"` // Variable name to store result
+	Action   string         `json:"action,omitempty"`    // Tool/skill name
+	Params   map[string]any `json:"params,omitempty"`    // Parameters with variable support
+	OutputAs string         `json:"output_as,omitempty"` // Variable name to store result
 
 	// Condition type fields
 	Condition *Condition `json:"condition,omitempty"`
@@ -181,24 +181,24 @@ type Variant struct {
 
 // ExecutionContext provides context for workflow execution
 type ExecutionContext struct {
-	WorkflowID  string                 `json:"workflow_id"`
-	ExecutionID string                 `json:"execution_id"`
-	MemberName  string                 `json:"member_name"`
-	SpaceID     string                 `json:"space_id"`
-	TriggerBy   string                 `json:"trigger_by"` // "intent" | "event" | "cron"
-	Input       map[string]interface{} `json:"input"`
+	WorkflowID  string         `json:"workflow_id"`
+	ExecutionID string         `json:"execution_id"`
+	MemberName  string         `json:"member_name"`
+	SpaceID     string         `json:"space_id"`
+	TriggerBy   string         `json:"trigger_by"` // "intent" | "event" | "cron"
+	Input       map[string]any `json:"input"`
 }
 
 // StepExecution represents the execution record of a single step
 type StepExecution struct {
-	StepID      string                 `json:"step_id"`
-	Action      string                 `json:"action"`
-	Params      map[string]interface{} `json:"params"`
-	StartedAt   time.Time              `json:"started_at"`
-	CompletedAt time.Time              `json:"completed_at,omitempty"`
-	Success     bool                   `json:"success"`
-	Result      interface{}            `json:"result,omitempty"`
-	Error       string                 `json:"error,omitempty"`
+	StepID      string         `json:"step_id"`
+	Action      string         `json:"action"`
+	Params      map[string]any `json:"params"`
+	StartedAt   time.Time      `json:"started_at"`
+	CompletedAt time.Time      `json:"completed_at,omitempty"`
+	Success     bool           `json:"success"`
+	Result      any            `json:"result,omitempty"`
+	Error       string         `json:"error,omitempty"`
 }
 
 // ExecutionRecord represents a complete workflow execution record

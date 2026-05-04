@@ -1,11 +1,11 @@
 package version
 
 import (
+	"github.com/sipeed/picoclaw/pkg/config"
 	"github.com/spf13/cobra"
 
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal"
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal/cliui"
-	"github.com/sipeed/picoclaw/pkg/config"
 )
 
 func NewVersionCommand() *cobra.Command {

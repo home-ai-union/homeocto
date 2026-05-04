@@ -1,4 +1,4 @@
-﻿// Package homeocto provides the HomeOcto subsystem for intent recognition
+// Package homeocto provides the HomeOcto subsystem for intent recognition
 // and workflow dispatching.  The HomeOcto type is the single entry point
 // consumed by the agent loop.
 package homeocto
@@ -10,14 +10,14 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/sipeed/picoclaw/pkg/config"
+	"github.com/sipeed/picoclaw/pkg/logger"
+	"github.com/sipeed/picoclaw/pkg/tools"
+
 	"github.com/home-ai-union/homeocto/pkg/channels/home"
 	homeconfig "github.com/home-ai-union/homeocto/pkg/config"
 	"github.com/home-ai-union/homeocto/pkg/ioc"
 	thirdioc "github.com/home-ai-union/homeocto/pkg/third/ioc"
-	"github.com/sipeed/picoclaw/pkg/config"
-
-	"github.com/sipeed/picoclaw/pkg/logger"
-	"github.com/sipeed/picoclaw/pkg/tools"
 )
 
 // ErrDisabled is returned by New when HomeOcto is explicitly disabled or

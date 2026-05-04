@@ -1,4 +1,4 @@
-﻿package miio
+package miio
 
 import (
 	rootdata "github.com/home-ai-union/homeocto/pkg/data"

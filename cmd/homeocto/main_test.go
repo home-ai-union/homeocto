@@ -6,11 +6,11 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/sipeed/picoclaw/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal"
-	"github.com/sipeed/picoclaw/pkg/config"
 )
 
 func TestNewPicoclawCommand(t *testing.T) {

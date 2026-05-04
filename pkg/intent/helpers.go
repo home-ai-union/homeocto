@@ -2,7 +2,7 @@ package intent
 
 // entityString extracts a string entity value from an entities map.
 // Returns "" if the key is absent or the value is not a string.
-func entityString(entities map[string]interface{}, key string) string {
+func entityString(entities map[string]any, key string) string {
 	if entities == nil {
 		return ""
 	}

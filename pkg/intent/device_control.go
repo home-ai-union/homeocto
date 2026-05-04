@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/home-ai-union/homeocto/pkg/data"
-	"github.com/home-ai-union/homeocto/pkg/workflow"
 	"github.com/sipeed/picoclaw/pkg/logger"
 	"github.com/sipeed/picoclaw/pkg/providers"
+
+	"github.com/home-ai-union/homeocto/pkg/data"
+	"github.com/home-ai-union/homeocto/pkg/workflow"
 )
 
 // DeviceControlIntent handles all device.control.* intents.
@@ -31,7 +32,12 @@ type DeviceControlIntent struct {
 // NewDeviceControlIntent creates a DeviceControlIntent.
 // workflowStore and engine are required; provider/modelName are used for
 // LLM-based workflow matching and may be nil/empty (falls back gracefully).
-func NewDeviceControlIntent(store data.WorkflowStore, eng workflow.Engine, provider providers.LLMProvider, modelName string) *DeviceControlIntent {
+func NewDeviceControlIntent(
+	store data.WorkflowStore,
+	eng workflow.Engine,
+	provider providers.LLMProvider,
+	modelName string,
+) *DeviceControlIntent {
 	return &DeviceControlIntent{
 		workflowStore: store,
 		engine:        eng,
@@ -77,7 +83,7 @@ func (d *DeviceControlIntent) Run(ctx context.Context, ictx IntentContext) Inten
 	execCtx := data.ExecutionContext{
 		MemberName: ictx.SenderID,
 		TriggerBy:  "intent",
-		Input: map[string]interface{}{
+		Input: map[string]any{
 			"user_input": ictx.UserInput,
 			"entities":   ictx.Result.Entities,
 		},
@@ -99,7 +105,7 @@ func (d *DeviceControlIntent) Run(ctx context.Context, ictx IntentContext) Inten
 }
 
 // matchWorkflow finds the best-matching workflow for the given user input
-// using the small LLM provider.  It builds a concise catalogue of enabled
+// using the small LLM provider.  It builds a concise catalog of enabled
 // workflows (id / name / description) and asks the model to return the best
 // matching ID as JSON {"id":"<workflow-id>"}.  If no workflow fits, the model
 // should return {"id":""} and the method returns nil.
@@ -111,15 +117,15 @@ func (d *DeviceControlIntent) matchWorkflow(ctx context.Context, userInput strin
 		return nil, fmt.Errorf("list workflows: %w", err)
 	}
 
-	// Build enabled-only catalogue.
-	var catalogue strings.Builder
+	// Build enabled-only catalog.
+	var catalog strings.Builder
 	for _, m := range metas {
 		if !m.Enabled {
 			continue
 		}
-		catalogue.WriteString(fmt.Sprintf("- id=%q  name=%q  description=%q\n", m.ID, m.Name, m.Description))
+		catalog.WriteString(fmt.Sprintf("- id=%q  name=%q  description=%q\n", m.ID, m.Name, m.Description))
 	}
-	if catalogue.Len() == 0 {
+	if catalog.Len() == 0 {
 		return nil, nil
 	}
 
@@ -128,7 +134,7 @@ func (d *DeviceControlIntent) matchWorkflow(ctx context.Context, userInput strin
 如果没有合适的工作流，输出 {"id":""}。
 不要输出任何其他内容。`
 
-	userMsg := fmt.Sprintf("候选工作流：\n%s\n用户指令：%s", catalogue.String(), userInput)
+	userMsg := fmt.Sprintf("候选工作流：\n%s\n用户指令：%s", catalog.String(), userInput)
 
 	messages := []providers.Message{
 		{Role: "system", Content: systemPrompt},
@@ -147,6 +153,7 @@ func (d *DeviceControlIntent) matchWorkflow(ctx context.Context, userInput strin
 	if err != nil {
 		logger.WarnCF("intent", "workflow match LLM error, falling through",
 			map[string]any{"error": err.Error()})
+		//nolint:nilerr // Intentionally return nil to allow fallback behavior
 		return nil, nil
 	}
 	if resp == nil || resp.Content == "" {
@@ -163,6 +170,7 @@ func (d *DeviceControlIntent) matchWorkflow(ctx context.Context, userInput strin
 		ID string `json:"id"`
 	}
 	if err := json.Unmarshal([]byte(raw), &result); err != nil || result.ID == "" {
+		//nolint:nilerr // Invalid response, return nil to allow fallback
 		return nil, nil
 	}
 
@@ -171,47 +179,6 @@ func (d *DeviceControlIntent) matchWorkflow(ctx context.Context, userInput strin
 		return nil, fmt.Errorf("load workflow %s: %w", result.ID, err)
 	}
 	return wf, nil
-}
-
-// scoreWorkflow gives a rough relevance score between 0 and 100.
-// Kept as fallback; not used when provider is available.
-func scoreWorkflow(m *data.WorkflowMeta, userInput string, hints []string) int {
-	score := 0
-	target := m.Name + " " + m.Description
-
-	for _, hint := range hints {
-		if hint == "" {
-			continue
-		}
-		if contains(target, hint) {
-			score += 30
-		}
-	}
-	if contains(target, userInput) {
-		score += 20
-	}
-	return score
-}
-
-// contains reports whether s contains substr (case-insensitive ASCII).
-func contains(s, substr string) bool {
-	return len(s) > 0 && len(substr) > 0 &&
-		indexInsensitive(s, substr) >= 0
-}
-
-func indexInsensitive(s, substr string) int {
-	sLow := strings.ToLower(s)
-	subLow := strings.ToLower(substr)
-	return indexOf(sLow, subLow)
-}
-
-func indexOf(s, substr string) int {
-	for i := 0; i <= len(s)-len(substr); i++ {
-		if s[i:i+len(substr)] == substr {
-			return i
-		}
-	}
-	return -1
 }
 
 // buildExecutionSummary creates a brief human-readable summary of a workflow run.

@@ -106,17 +106,17 @@ func LoadHomeConfig() (*HomeConfig, error) {
 	}
 
 	path := filepath.Join(homeDir, defaultConfigFileName)
-	_, err := os.Stat(path)
-	if os.IsNotExist(err) {
+	_, statErr := os.Stat(path)
+	if os.IsNotExist(statErr) {
 		// Create default config and save it
 		cfg := DefaultHomeConfig()
-		if err := SaveHomeConfig(path, cfg); err != nil {
-			return nil, fmt.Errorf("home config: create default %s: %w", path, err)
+		if saveErr := SaveHomeConfig(path, cfg); saveErr != nil {
+			return nil, fmt.Errorf("home config: create default %s: %w", path, saveErr)
 		}
 		return cfg, nil
 	}
-	if err != nil {
-		return nil, fmt.Errorf("home config: stat %s: %w", path, err)
+	if statErr != nil {
+		return nil, fmt.Errorf("home config: stat %s: %w", path, statErr)
 	}
 	return load(path)
 }

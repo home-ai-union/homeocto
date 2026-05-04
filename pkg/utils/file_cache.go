@@ -39,7 +39,7 @@ func newFileCache(config FileCacheConfig) (*FileCache, error) {
 		return nil, fmt.Errorf("cache directory is required")
 	}
 
-	if err := os.MkdirAll(config.CacheDir, 0755); err != nil {
+	if err := os.MkdirAll(config.CacheDir, 0o755); err != nil {
 		return nil, fmt.Errorf("failed to create cache directory: %w", err)
 	}
 
@@ -100,7 +100,7 @@ func (c *FileCache) Set(key string, data []byte) error {
 
 	// Write file atomically (write to temp, then rename)
 	tmpPath := path + ".tmp"
-	if err := os.WriteFile(tmpPath, data, 0644); err != nil {
+	if err := os.WriteFile(tmpPath, data, 0o644); err != nil {
 		return fmt.Errorf("failed to write cache file: %w", err)
 	}
 

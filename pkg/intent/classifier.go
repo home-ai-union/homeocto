@@ -6,8 +6,9 @@ import (
 	"fmt"
 	"strings"
 
-	homecfg "github.com/home-ai-union/homeocto/pkg/config"
 	"github.com/sipeed/picoclaw/pkg/providers"
+
+	homecfg "github.com/home-ai-union/homeocto/pkg/config"
 )
 
 // intentClassifyPrompt is the system prompt used for intent classification.

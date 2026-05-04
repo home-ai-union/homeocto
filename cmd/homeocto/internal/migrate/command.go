@@ -1,9 +1,8 @@
 package migrate
 
 import (
-	"github.com/spf13/cobra"
-
 	"github.com/sipeed/picoclaw/pkg/migrate"
+	"github.com/spf13/cobra"
 )
 
 func NewMigrateCommand() *cobra.Command {

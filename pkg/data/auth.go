@@ -103,7 +103,9 @@ func (s *authStore) SaveBrand(brand, region, userName, token string, extra map[s
 }
 
 // GetDecryptedBrand returns the decrypted credentials for a brand
-func (s *authStore) GetDecryptedBrand(brand string) (region, userName, token string, extra map[string]string, err error) {
+func (s *authStore) GetDecryptedBrand(
+	brand string,
+) (region, userName, token string, extra map[string]string, err error) {
 	authData, ok := s.data.Brands[brand]
 	if !ok || authData.Token == "" {
 		return "", "", "", nil, ErrBrandNotFound

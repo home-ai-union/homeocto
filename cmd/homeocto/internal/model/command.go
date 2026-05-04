@@ -3,10 +3,10 @@ package model
 import (
 	"fmt"
 
+	"github.com/sipeed/picoclaw/pkg/config"
 	"github.com/spf13/cobra"
 
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal"
-	"github.com/sipeed/picoclaw/pkg/config"
 )
 
 // LocalModel is a special model name that indicates that the model is local and with or without api_key.

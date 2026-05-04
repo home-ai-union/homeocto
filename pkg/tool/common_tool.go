@@ -5,8 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/home-ai-union/homeocto/pkg/data"
 	"github.com/sipeed/picoclaw/pkg/tools"
+
+	"github.com/home-ai-union/homeocto/pkg/data"
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -89,7 +90,10 @@ func (t *CommonTool) Execute(_ context.Context, args map[string]any) *tools.Tool
 		return t.execListHomes()
 	default:
 		return &tools.ToolResult{
-			ForLLM:  fmt.Sprintf("unknown method '%s'; tool must invoke by skills, please use the right skill!", req.Method),
+			ForLLM: fmt.Sprintf(
+				"unknown method '%s'; tool must invoke by skills, please use the right skill!",
+				req.Method,
+			),
 			IsError: true,
 		}
 	}

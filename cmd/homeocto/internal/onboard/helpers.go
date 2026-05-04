@@ -6,12 +6,12 @@ import (
 	"os"
 	"path/filepath"
 
+	"github.com/sipeed/picoclaw/pkg/config"
+	"github.com/sipeed/picoclaw/pkg/credential"
 	"golang.org/x/term"
 
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal"
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal/cliui"
-	"github.com/sipeed/picoclaw/pkg/config"
-	"github.com/sipeed/picoclaw/pkg/credential"
 )
 
 func onboard(encrypt bool) {

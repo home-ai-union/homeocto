@@ -11,10 +11,11 @@ import (
 	"strings"
 
 	"github.com/AlexxIT/go2rtc/pkg/xiaomi"
+	"github.com/sipeed/picoclaw/pkg/logger"
+
 	"github.com/home-ai-union/homeocto/pkg/config"
 	"github.com/home-ai-union/homeocto/pkg/data"
 	"github.com/home-ai-union/homeocto/pkg/third"
-	"github.com/sipeed/picoclaw/pkg/logger"
 )
 
 const (
@@ -271,7 +272,6 @@ func (c *MiClient) GetHomes() ([]*third.HomeInfo, error) {
 			ID:   h.HomeID,
 			Name: h.HomeName,
 		})
-
 	}
 
 	return homes, nil
@@ -442,7 +442,12 @@ func (c *MiClient) GetSpec(deviceID string) (*third.SpecInfo, error) {
 
 	specJSON := string(specData)
 
-	logger.Infof("[DeviceOps] [xiaomi] Successfully fetched spec for device %s (model: %s, URN: %s)", deviceID, info.Model, info.SpecType)
+	logger.Infof(
+		"[DeviceOps] [xiaomi] Successfully fetched spec for device %s (model: %s, URN: %s)",
+		deviceID,
+		info.Model,
+		info.SpecType,
+	)
 
 	return &third.SpecInfo{
 		DeviceID: deviceID,
@@ -537,7 +542,11 @@ func (c *MiClient) GetDeviceInfo(deviceID string) (*DeviceInfo, error) {
 			if c.deviceStore != nil {
 				for i := range resp.List {
 					if err := c.deviceStore.Save(&resp.List[i]); err != nil {
-						logger.Warnf("[DeviceOps] [xiaomi] Failed to save device %s to store: %v", resp.List[i].DID, err)
+						logger.Warnf(
+							"[DeviceOps] [xiaomi] Failed to save device %s to store: %v",
+							resp.List[i].DID,
+							err,
+						)
 					}
 				}
 			}

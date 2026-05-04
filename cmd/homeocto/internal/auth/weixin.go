@@ -5,11 +5,11 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/sipeed/picoclaw/pkg/channels/weixin"
+	"github.com/sipeed/picoclaw/pkg/config"
 	"github.com/spf13/cobra"
 
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal"
-	"github.com/sipeed/picoclaw/pkg/channels/weixin"
-	"github.com/sipeed/picoclaw/pkg/config"
 )
 
 func newWeixinCommand() *cobra.Command {

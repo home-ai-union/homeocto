@@ -1,13 +1,14 @@
-﻿package tuya
+package tuya
 
 import (
 	"encoding/json"
 	"errors"
 	"fmt"
 
+	"github.com/sipeed/picoclaw/pkg/logger"
+
 	"github.com/home-ai-union/homeocto/pkg/data"
 	"github.com/home-ai-union/homeocto/pkg/third"
-	"github.com/sipeed/picoclaw/pkg/logger"
 )
 
 const (
@@ -48,7 +49,14 @@ type TuyaClient struct {
 // via SetAPIKey. Any operation that requires the API key will return an error via
 // checkAPI() until SetAPIKey is called.
 // authStore is optional and used for loading credentials; if nil, lazy loading won't work.
-func NewTuyaClient(store *data.JSONStore, modelStore *data.JSONStore, apiKey string, email string, password string, region string) (*TuyaClient, error) {
+func NewTuyaClient(
+	store *data.JSONStore,
+	modelStore *data.JSONStore,
+	apiKey string,
+	email string,
+	password string,
+	region string,
+) (*TuyaClient, error) {
 	if store == nil {
 		return nil, errors.New("store cannot be nil")
 	}
@@ -563,7 +571,9 @@ func (tc *TuyaClient) GetStatisticsConfig() (map[string]any, error) {
 }
 
 // GetStatisticsData returns hourly statistics values for a device.
-func (tc *TuyaClient) GetStatisticsData(deviceID, dpCode, statisticType, startTime, endTime string) (map[string]any, error) {
+func (tc *TuyaClient) GetStatisticsData(
+	deviceID, dpCode, statisticType, startTime, endTime string,
+) (map[string]any, error) {
 	if err := tc.checkAPI(); err != nil {
 		return nil, err
 	}
@@ -571,7 +581,11 @@ func (tc *TuyaClient) GetStatisticsData(deviceID, dpCode, statisticType, startTi
 }
 
 // IPCCaptureAllocate allocates a cloud capture (snapshot or short video).
-func (tc *TuyaClient) IPCCaptureAllocate(deviceID, captureType string, picCount, videoDurationSeconds int, homeID string) (map[string]any, error) {
+func (tc *TuyaClient) IPCCaptureAllocate(
+	deviceID, captureType string,
+	picCount, videoDurationSeconds int,
+	homeID string,
+) (map[string]any, error) {
 	if err := tc.checkAPI(); err != nil {
 		return nil, err
 	}
@@ -579,7 +593,10 @@ func (tc *TuyaClient) IPCCaptureAllocate(deviceID, captureType string, picCount,
 }
 
 // IPCCaptureResolve resolves capture access URL.
-func (tc *TuyaClient) IPCCaptureResolve(deviceID, captureType, bucket string, params map[string]any) (map[string]any, error) {
+func (tc *TuyaClient) IPCCaptureResolve(
+	deviceID, captureType, bucket string,
+	params map[string]any,
+) (map[string]any, error) {
 	if err := tc.checkAPI(); err != nil {
 		return nil, err
 	}

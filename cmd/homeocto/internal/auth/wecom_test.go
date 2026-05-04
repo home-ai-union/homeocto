@@ -12,11 +12,11 @@ import (
 	"testing"
 	"time"
 
+	"github.com/sipeed/picoclaw/pkg/config"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
 	"github.com/home-ai-union/homeocto/cmd/homeocto/internal"
-	"github.com/sipeed/picoclaw/pkg/config"
 )
 
 func TestNewWeComCommand(t *testing.T) {

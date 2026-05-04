@@ -1,4 +1,4 @@
-﻿// Package ioc provides the singleton management for all components.
+// Package ioc provides the singleton management for all components.
 package ioc
 
 import (
@@ -6,14 +6,15 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/sipeed/picoclaw/pkg/config"
+	"github.com/sipeed/picoclaw/pkg/providers"
+	"github.com/sipeed/picoclaw/pkg/tools"
+
 	homeconfig "github.com/home-ai-union/homeocto/pkg/config"
 	"github.com/home-ai-union/homeocto/pkg/data"
 	"github.com/home-ai-union/homeocto/pkg/llm"
 	"github.com/home-ai-union/homeocto/pkg/third"
 	hometool "github.com/home-ai-union/homeocto/pkg/tool"
-	"github.com/sipeed/picoclaw/pkg/config"
-	"github.com/sipeed/picoclaw/pkg/providers"
-	"github.com/sipeed/picoclaw/pkg/tools"
 )
 
 // ErrDisabled is returned by NewFactory when HomeOcto is explicitly disabled or

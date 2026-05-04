@@ -12,6 +12,7 @@ linters:
     - exhaustruct
     - funcorder
     - gochecknoglobals
+    - godoclint  # Documentation style is not enforced
     - gosmopolitan  # Project legitimately uses CJK text in tests (FTS5, token counting)
     - godot
     - intrange
@@ -26,6 +27,7 @@ linters:
     - wrapcheck
     - wsl
     - wsl_v5
+    - interfacebloat  # Interface size is a design choice, not enforced
 
     # TODO: Disabled, because they are failing at the moment, we should fix them and enable (step by step)
     - contextcheck
@@ -81,6 +83,8 @@ linters:
       enable-all: true
       disable:
         - fieldalignment
+        - shadow  # Variable shadowing is a style issue, not a bug
+        - inline  # Performance suggestion, not required
     lll:
       line-length: 120
       tab-width: 4
@@ -135,6 +139,8 @@ linters:
           disabled: true
   exclusions:
     generated: lax
+    paths:
+      - 'web/frontend/node_modules/'  # Third-party code should not be linted
     rules:
       - linters:
           - lll

@@ -176,6 +176,7 @@ func TestAuthStore_GetDecryptedBrand_NotFound(t *testing.T) {
 	store, cleanup := setupAuthTest(t)
 	defer cleanup()
 
+	//nolint:dogsled // Test only needs error value
 	_, _, _, _, err := store.GetDecryptedBrand("nonexistent")
 	if err == nil {
 		t.Error("Expected error for nonexistent brand")
@@ -241,6 +242,7 @@ func TestAuthStore_EncryptionSecurity(t *testing.T) {
 	}
 
 	// Verify decryption returns the original
+	//nolint:dogsled // Test only needs decryptedToken and err
 	_, _, decryptedToken, _, err := store.GetDecryptedBrand("tuya")
 	if err != nil {
 		t.Fatalf("GetDecryptedBrand failed: %v", err)

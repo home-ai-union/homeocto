@@ -10,12 +10,13 @@ import (
 	"strings"
 	"text/template"
 
+	"github.com/sipeed/picoclaw/pkg/logger"
+	"github.com/sipeed/picoclaw/pkg/tools"
+
 	"github.com/home-ai-union/homeocto/pkg/config"
 	"github.com/home-ai-union/homeocto/pkg/data"
 	"github.com/home-ai-union/homeocto/pkg/event"
 	"github.com/home-ai-union/homeocto/pkg/third"
-	"github.com/sipeed/picoclaw/pkg/logger"
-	"github.com/sipeed/picoclaw/pkg/tools"
 )
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -177,7 +178,10 @@ func (t *CLITool) Execute(_ context.Context, args map[string]any) *tools.ToolRes
 		return t.execExe(client, req.Params)
 	default:
 		return &tools.ToolResult{
-			ForLLM:  fmt.Sprintf("unknown method '%s'; Must Confirm! tool must invoke by skills,please use the right skill!", req.Method),
+			ForLLM: fmt.Sprintf(
+				"unknown method '%s'; Must Confirm! tool must invoke by skills,please use the right skill!",
+				req.Method,
+			),
 			IsError: true,
 		}
 	}
@@ -327,7 +331,6 @@ func (t *CLITool) execSyncDevices(client third.Client, params map[string]any) *t
 	}
 
 	for _, d := range devices {
-
 		streamName := d.From + "_" + d.FromID
 		streamURL, err := client.GetRtspStr(d.FromID)
 		if err != nil {
@@ -341,7 +344,6 @@ func (t *CLITool) execSyncDevices(client third.Client, params map[string]any) *t
 		if err := config.PatchGo2RTCConfig([]string{"streams", streamName}, []string{streamURL}); err != nil {
 			logger.Info(fmt.Sprintf("%s: go2rtc config error - %v", d.Name, err))
 		}
-
 	}
 
 	b, _ := json.Marshal(devices)
@@ -513,7 +515,10 @@ func (t *CLITool) execGetCurrentHome(params map[string]any) *tools.ToolResult {
 			}
 		}
 		if len(brandHomes) == 0 {
-			return &tools.ToolResult{ForLLM: fmt.Sprintf("no homes found for brand '%s', please sync homes first", from), IsError: true}
+			return &tools.ToolResult{
+				ForLLM:  fmt.Sprintf("no homes found for brand '%s', please sync homes first", from),
+				IsError: true,
+			}
 		}
 		msg := fmt.Sprintf("no current home set for brand '%s', available homes: %v. Must Confirm!", from, brandHomes)
 		// Homes exist but none is set as current
@@ -632,7 +637,10 @@ func (t *CLITool) execSaveDeviceOps(params map[string]any) *tools.ToolResult {
 
 		msg := "no valid operations to save - all devices with this URN marked as NoAction"
 		if skippedOps > 0 {
-			msg = fmt.Sprintf("all %d operations were skipped (not in ops.md) - all devices with this URN marked as NoAction", skippedOps)
+			msg = fmt.Sprintf(
+				"all %d operations were skipped (not in ops.md) - all devices with this URN marked as NoAction",
+				skippedOps,
+			)
 		}
 		return &tools.ToolResult{ForLLM: msg, IsError: true}
 	}
@@ -867,7 +875,10 @@ func (t *CLITool) execExe(client third.Client, params map[string]any) *tools.Too
 	}
 
 	if deviceURN == "" {
-		return &tools.ToolResult{ForLLM: fmt.Sprintf("device not found: from_id=%s, from=%s", fromID, from), IsError: true}
+		return &tools.ToolResult{
+			ForLLM:  fmt.Sprintf("device not found: from_id=%s, from=%s", fromID, from),
+			IsError: true,
+		}
 	}
 
 	// Get the device operation from store by URN
@@ -1026,7 +1037,9 @@ func (t *CLITool) execMarkNoAction(params map[string]any) *tools.ToolResult {
 			if err := t.deviceStore.Save(device); err != nil {
 				return &tools.ToolResult{ForLLM: fmt.Sprintf("failed to save device: %v", err), IsError: true}
 			}
-			return tools.NewToolResult(fmt.Sprintf("successfully marked device %s from %s as NoAction", fromID, device.From))
+			return tools.NewToolResult(
+				fmt.Sprintf("successfully marked device %s from %s as NoAction", fromID, device.From),
+			)
 		}
 	}
 
@@ -1059,7 +1072,12 @@ func (t *CLITool) markDevicesByURNAsNoAction(urn, from string) error {
 		}
 	}
 
-	logger.Infof("[markDevicesByURNAsNoAction] marked %d devices with URN %s from %s as NoAction", markedCount, urn, from)
+	logger.Infof(
+		"[markDevicesByURNAsNoAction] marked %d devices with URN %s from %s as NoAction",
+		markedCount,
+		urn,
+		from,
+	)
 	return nil
 }
 
@@ -1112,7 +1130,10 @@ func (t *CLITool) execSaveAuth(params map[string]any) *tools.ToolResult {
 
 	// Save to AuthStore
 	if err := t.authStore.SaveBrand(brand, region, userName, token, extra); err != nil {
-		return &tools.ToolResult{ForLLM: fmt.Sprintf("failed to save auth for brand '%s': %v", brand, err), IsError: true}
+		return &tools.ToolResult{
+			ForLLM:  fmt.Sprintf("failed to save auth for brand '%s': %v", brand, err),
+			IsError: true,
+		}
 	}
 
 	// Publish token event to trigger client refresh
@@ -1146,7 +1167,10 @@ func (t *CLITool) execDeleteAuth(params map[string]any) *tools.ToolResult {
 
 	// Delete from AuthStore
 	if err := t.authStore.DeleteBrand(brand); err != nil {
-		return &tools.ToolResult{ForLLM: fmt.Sprintf("failed to delete auth for brand '%s': %v", brand, err), IsError: true}
+		return &tools.ToolResult{
+			ForLLM:  fmt.Sprintf("failed to delete auth for brand '%s': %v", brand, err),
+			IsError: true,
+		}
 	}
 
 	// Publish token event to trigger client refresh
