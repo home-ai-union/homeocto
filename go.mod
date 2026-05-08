@@ -3,7 +3,7 @@ module github.com/home-ai-union/homeocto
 go 1.25.10
 
 require (
-	fyne.io/systray v1.12.0
+	fyne.io/systray v1.12.1
 	github.com/AlexxIT/go2rtc v1.9.14
 	github.com/charmbracelet/lipgloss v1.1.0
 	github.com/ergochat/readline v0.1.3
