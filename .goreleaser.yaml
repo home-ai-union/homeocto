@@ -158,6 +158,8 @@ changelog:
 
 release:
   disable: '{{ isEnvSet "NIGHTLY_BUILD" }}'
+  extra_files:
+    - glob: ./build/homeocto-android-universal.zip
   footer: >-
 
     ---
