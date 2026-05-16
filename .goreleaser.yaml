@@ -160,6 +160,7 @@ release:
   disable: '{{ isEnvSet "NIGHTLY_BUILD" }}'
   extra_files:
     - glob: ./build/homeocto-android-universal.zip
+      name_template: '{{ .ProjectName }}-android-universal.zip'
   footer: >-
 
     ---
