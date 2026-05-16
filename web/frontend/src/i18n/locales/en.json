@@ -728,5 +728,11 @@
       "title": "View Documentation",
       "description": "Need more help? Click the documentation button in the top right corner to view detailed guides and configuration docs."
     }
+  },
+  "smartHome": {
+    "serviceNotReady": {
+      "title": "Service Not Started",
+      "description": "Please start the gateway service first before managing smart devices. Click 'Start Service' in the top bar, or use the button below."
+    }
   }
 }
